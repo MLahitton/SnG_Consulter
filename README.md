@@ -1,6 +1,37 @@
 ﻿# SnG Consulter
 
-Servicio de preparación documental para Steel & Glass. Estado actual: **Fase 1**.
+Servicio de preparación documental para Steel & Glass. Fase 1 cerrada;
+estado actual: **2A.1 — contrato de Discovery y ensamblado de evidencia**.
+
+## Discovery 2A.1
+
+`discovery/` define contratos y orquestación por página; todavía no incluye un
+analizador real ni integración con proveedor de IA. `build_discovery_input()`
+lee un batch persistido y sus documentos mediante `storage.py`, el lector
+validado común con Review Harness. No modifica los archivos de Fase 1.
+
+Todas las páginas de ocurrencias válidas participan, incluidas páginas sin texto.
+Entradas con error se omiten conservando los índices de las demás ocurrencias.
+Los nombres originales no forman parte de `DiscoveryInput`. El texto nativo es
+la vista deduplicada de Fase 1; sus bbox de entrada se expresan en píxeles visuales
+del render, aplicando la conversión ya existente. RAW sigue intacto.
+
+`NormalizedRegion` representa un rectángulo no vacío entre 0 y 1 en el espacio
+visual preparado, con origen superior izquierdo. Los helpers permiten convertir
+entre bbox de píxeles y región normalizada, sin recortar datos inválidos.
+
+`DiscoveryService` recibe un `PageAnalyzer` intercambiable y asigna IDs
+`candidate-0001`, `candidate-0002`, etc., en orden de página y propuesta.
+Cada candidato mantiene descripción, referencia provisional, relevancia de
+vidrio (`LIKELY`/`POSSIBLE`) y evidencia con documento, ocurrencia, página,
+región y tipo (`VISUAL`/`NATIVE_TEXT`/`COMBINED`). No son estructuras definitivas;
+no se fusionan referencias iguales ni candidatos entre páginas.
+
+Los resultados se publican por archivo temporal y reemplazo en
+`runtime/discovery/<batch_id>/discovery.json`. Un fallo no publica resultados
+parciales ni modifica un resultado anterior. No se cambia el batch ni el preparado.
+Los tests usan analizadores fake. No hay UI/API de Discovery, Coverage Audit,
+reconciliación de identidad, OCR, extracción técnica ni modelo multimodal conectado.
 
 ## Preparación disponible
 
@@ -151,7 +182,7 @@ completo queda pendiente como regresión posterior; no es la única forma de val
 ni se declara ejecutado por esta auditoría.
 Consulta [criterios de aceptación](docs/PHASE_1_ACCEPTANCE.md).
 
-Esta fase no ejecuta IA, OCR, Discovery, extracción técnica ni interpretación
+La preparación de Fase 1 no ejecuta IA, OCR, Discovery, extracción técnica ni interpretación
 arquitectónica. Es una herramienta local de revisión, sin autenticación.
 
 ## Límites actuales de Fase 1

@@ -18,6 +18,10 @@ from sng_consulter.preparation import (
 )
 from sng_consulter.preparation.models import PreparedDocument, PreparedPage, TextSpan
 from sng_consulter.preparation.service import UnsupportedDocumentError
+from sng_consulter.storage import (
+    ContentIdentityConflictError, IncompatiblePreparedDocumentError,
+    prepared_file, read_prepared_document, read_review_batch,
+)
 
 router = APIRouter(prefix="/review", tags=["review"])
 UPLOAD_DIR = Path("runtime/review/uploads")
@@ -86,13 +90,10 @@ def upload_documents(document: list[UploadFile] = File(...)) -> Response:
 
 
 def _load_batch(batch_id: str) -> dict:
-    if not re.fullmatch(r"[0-9a-f]{32}", batch_id):
-        raise HTTPException(404, "Conjunto no encontrado.")
-    root = BATCH_DIR.resolve()
-    manifest = (root / batch_id / "manifest.json").resolve()
-    if not manifest.is_relative_to(root) or not manifest.is_file():
-        raise HTTPException(404, "Conjunto no encontrado.")
-    return json.loads(manifest.read_text(encoding="utf-8"))
+    try:
+        return read_review_batch(BATCH_DIR, batch_id).model_dump(exclude_none=True)
+    except FileNotFoundError as exc:
+        raise HTTPException(404, "Conjunto no encontrado.") from exc
 
 
 @router.get("/batches/{batch_id}", response_class=HTMLResponse)
@@ -193,28 +194,21 @@ def _prepare_upload(document: UploadFile) -> PreparedDocument:
 
 
 def _safe_file(directory: Path, relative: Path) -> Path:
-    root = PREPARED_DIR.resolve()
-    directory = directory.resolve()
-    candidate = (directory / relative).resolve()
-    if (not directory.is_relative_to(root) or not candidate.is_relative_to(directory)
-            or not candidate.is_file()):
-        raise HTTPException(404, "Archivo no encontrado.")
-    return candidate
+    try:
+        return prepared_file(PREPARED_DIR, directory, relative)
+    except FileNotFoundError as exc:
+        raise HTTPException(404, "Archivo no encontrado.") from exc
 
 
 def _load(document_id: str, expected_sha256: str | None = None) -> tuple[Path, PreparedDocument]:
-    if not re.fullmatch(r"[0-9a-f]{16}", document_id):
-        raise HTTPException(404, "Documento no encontrado.")
-    directory = PREPARED_DIR / document_id
-    manifest = _safe_file(directory, Path("manifest.json"))
-    data = json.loads(manifest.read_text(encoding="utf-8"))
-    if expected_sha256 is not None and data["source_sha256"] != expected_sha256:
-        raise HTTPException(409, "Conflicto de identidad del contenido.")
-    coordinate_fields = {"coordinate_width", "coordinate_height", "coordinate_unit", "source_to_visible_matrix"}
-    if (data.get("preparation_contract_version") != PreparedDocument.model_fields["preparation_contract_version"].default
-            or any(not coordinate_fields.issubset(page) for page in data["pages"])):
-        raise IncompatiblePreparedManifestError()
-    return directory, PreparedDocument.model_validate(data)
+    try:
+        return read_prepared_document(PREPARED_DIR, document_id, expected_sha256)
+    except FileNotFoundError as exc:
+        raise HTTPException(404, "Documento no encontrado.") from exc
+    except ContentIdentityConflictError as exc:
+        raise HTTPException(409, "Conflicto de identidad del contenido.") from exc
+    except IncompatiblePreparedDocumentError as exc:
+        raise IncompatiblePreparedManifestError() from exc
 
 
 def _page(prepared: PreparedDocument, number: int) -> PreparedPage:
