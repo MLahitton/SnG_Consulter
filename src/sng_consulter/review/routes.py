@@ -1,4 +1,5 @@
-﻿import json
+import json
+import hashlib
 import re
 import logging
 import shutil
@@ -6,6 +7,7 @@ from html import escape
 from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from uuid import uuid4
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
@@ -20,6 +22,7 @@ from sng_consulter.preparation.service import UnsupportedDocumentError
 router = APIRouter(prefix="/review", tags=["review"])
 UPLOAD_DIR = Path("runtime/review/uploads")
 PREPARED_DIR = Path("runtime/review/prepared")
+BATCH_DIR = Path("runtime/review/batches")
 logger = logging.getLogger(__name__)
 
 
@@ -46,83 +49,137 @@ def review_home() -> HTMLResponse:
 
 @router.post("/upload")
 def upload_documents(document: list[UploadFile] = File(...)) -> Response:
-    # A single file keeps the existing redirect and error behavior.
     try:
-        if len(document) == 1:
-            return upload_document(document[0])
-        rows = []
-        successful = 0
+        batch_id = uuid4().hex
+        entries = []
         for upload in document:
-            name = escape(upload.filename or "document")
+            entry = {"document_id": None, "original_name": upload.filename or "document", "status": "error"}
             try:
-                result = upload_document(upload)
+                prepared = _prepare_upload(upload)
             except HTTPException as exc:
-                if exc.status_code not in {400, 415}:
+                if len(document) == 1 or exc.status_code not in {400, 415}:
                     raise
-                rows.append(f"<li>{name}: Error ({exc.status_code}) — {escape(str(exc.detail))}</li>")
+                entry.update(error=str(exc.detail), status_code=exc.status_code)
             else:
-                successful += 1
-                url = escape(result.headers["location"], quote=True)
-                rows.append(f'<li>{name}: Preparado — <a href="{url}" target="_blank" '
-                            'rel="noopener">Revisar documento</a></li>')
-        return _html(
-            '<h1>Resultados de la carga</h1>'
-            f'<p>Preparados: {successful} / {len(document)}. '
-            f'Fallidos: {len(document) - successful}.</p>'
-            '<p>Cada documento se revisa en una nueva pestaña.</p>'
-            f'<ul>{"".join(rows)}</ul><p><a href="/review">Subir más documentos</a></p>'
+                entry.update(document_id=prepared.document_id, status="prepared")
+            entries.append(entry)
+        if len(document) == 1 and prepared.source_name == entries[0]["original_name"]:
+            return RedirectResponse(f"/review/{prepared.document_id}", status_code=303)
+        directory = BATCH_DIR / batch_id
+        directory.mkdir(parents=True)
+        (directory / "manifest.json").write_text(
+            json.dumps({"batch_id": batch_id, "documents": entries}, ensure_ascii=False, indent=2),
+            encoding="utf-8",
         )
+        return RedirectResponse(f"/review/batches/{batch_id}", status_code=303)
     finally:
+        # The request handler is the sole owner of UploadFile closure.
         for upload in document:
             upload.file.close()
 
 
-def upload_document(document: UploadFile) -> RedirectResponse:
+def _load_batch(batch_id: str) -> dict:
+    if not re.fullmatch(r"[0-9a-f]{32}", batch_id):
+        raise HTTPException(404, "Conjunto no encontrado.")
+    root = BATCH_DIR.resolve()
+    manifest = (root / batch_id / "manifest.json").resolve()
+    if not manifest.is_relative_to(root) or not manifest.is_file():
+        raise HTTPException(404, "Conjunto no encontrado.")
+    return json.loads(manifest.read_text(encoding="utf-8"))
+
+
+@router.get("/batches/{batch_id}", response_class=HTMLResponse)
+def review_batch(batch_id: str) -> HTMLResponse:
+    batch = _load_batch(batch_id)
+    rows = []
+    successful = 0
+    for index, entry in enumerate(batch["documents"]):
+        name = escape(entry["original_name"])
+        if entry["status"] == "prepared":
+            successful += 1
+            url = f'/review/{entry["document_id"]}?batch_id={batch_id}&occurrence={index}'
+            rows.append(f'<li>{name}: Preparado — <a href="{url}">Revisar documento</a></li>')
+        else:
+            rows.append(f'<li>{name}: Error ({entry["status_code"]}) — {escape(entry["error"])}</li>')
+    total = len(batch["documents"])
+    return _html(f'<h1>Conjunto de revisión {batch_id}</h1>'
+                 f'<p>Preparados: {successful} / {total}. Fallidos: {total - successful}.</p>'
+                 f'<ul>{"".join(rows)}</ul><p><a href="/review">Subir más documentos</a></p>')
+
+
+def _occurrence_name(document_id: str, batch_id: str | None, occurrence: int | None) -> str | None:
+    if batch_id is None and occurrence is None:
+        return None
+    if batch_id is None or occurrence is None:
+        raise HTTPException(404, "Ocurrencia no encontrada.")
+    entries = _load_batch(batch_id)["documents"]
+    if not 0 <= occurrence < len(entries):
+        raise HTTPException(404, "Ocurrencia no encontrada.")
+    entry = entries[occurrence]
+    if entry["status"] != "prepared" or entry["document_id"] != document_id:
+        raise HTTPException(404, "Ocurrencia no encontrada.")
+    return entry["original_name"]
+
+
+def _download_name(name: str) -> str:
+    # Strip both Unix and Windows path components and header/control characters.
+    basename = name.replace("\\", "/").rsplit("/", 1)[-1]
+    basename = "".join(char for char in basename if ord(char) >= 32 and ord(char) != 127)
+    basename = re.sub(r'[<>:"|?*]', "_", basename)
+    basename = basename.strip().rstrip(". ")
+    return basename if basename not in {"", ".", ".."} else "document"
+
+
+def _prepare_upload(document: UploadFile) -> PreparedDocument:
     # The client name is metadata only; it never becomes a filesystem path.
     source_name = document.filename or "document"
     suffix = Path(source_name).suffix.lower()
     if suffix not in {".pdf", ".jpg", ".jpeg", ".png", ".webp", ".bmp"}:
-        document.file.close()
         raise HTTPException(415, "Formato no soportado.")
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-    try:
-        with TemporaryDirectory(dir=UPLOAD_DIR) as temporary:
-            source = Path(temporary) / ("document" + suffix)
-            document.file.seek(0)
-            with source.open("wb") as target:
-                shutil.copyfileobj(document.file, target)
-            if not source.is_file():
-                raise HTTPException(500, "No se creó el archivo temporal del upload.")
-            size = source.stat().st_size
-            with source.open("rb") as uploaded:
-                prefix = uploaded.read(8)
-            if size == 0 or (suffix == ".pdf" and not prefix.startswith(b"%PDF-")):
-                logger.warning("Upload rechazado: filename=%r size=%d prefix_hex=%s",
-                               source_name, size, prefix.hex())
-                detail = ("El archivo cargado está vacío." if size == 0 else
-                          "El archivo cargado no comienza con la cabecera PDF %PDF-.")
-                raise HTTPException(400, detail)
-            logger.info("Upload validado: filename=%r size=%d prefix_hex=%s",
-                        source_name, size, prefix.hex())
-            try:
-                prepared = DocumentPreparationService().prepare(source, PREPARED_DIR)
-            except UnsupportedDocumentError as exc:
-                raise HTTPException(415, str(exc)) from exc
-            except (ValueError, RuntimeError) as exc:
-                logger.exception("Falló preparación: filename=%r size=%d error_type=%s",
-                                 source_name, size, type(exc).__name__)
-                raise HTTPException(400, f"Falló la preparación ({type(exc).__name__}): {str(exc)[:300]}") from exc
-            except OSError:
-                logger.exception("Error de archivos durante preparación: filename=%r size=%d",
-                                 source_name, size)
-                raise
-            prepared.source_name = source_name
-            (prepared.output_dir / "manifest.json").write_text(
-                prepared.model_dump_json(indent=2), encoding="utf-8"
-            )
-    finally:
-        document.file.close()
-    return RedirectResponse(f"/review/{prepared.document_id}", status_code=303)
+    with TemporaryDirectory(dir=UPLOAD_DIR) as temporary:
+        source = Path(temporary) / ("document" + suffix)
+        document.file.seek(0)
+        with source.open("wb") as target:
+            shutil.copyfileobj(document.file, target)
+        if not source.is_file():
+            raise HTTPException(500, "No se creó el archivo temporal del upload.")
+        size = source.stat().st_size
+        with source.open("rb") as uploaded:
+            prefix = uploaded.read(8)
+        if size == 0 or (suffix == ".pdf" and not prefix.startswith(b"%PDF-")):
+            logger.warning("Upload rechazado: filename=%r size=%d prefix_hex=%s",
+                           source_name, size, prefix.hex())
+            detail = ("El archivo cargado está vacío." if size == 0 else
+                      "El archivo cargado no comienza con la cabecera PDF %PDF-.")
+            raise HTTPException(400, detail)
+        logger.info("Upload validado: filename=%r size=%d prefix_hex=%s",
+                    source_name, size, prefix.hex())
+        with source.open("rb") as handle:
+            digest = hashlib.file_digest(handle, "sha256").hexdigest()
+        document_id = digest[:16]
+        if (PREPARED_DIR / document_id / "manifest.json").is_file():
+            _, existing = _load(document_id)
+            if existing.source_sha256 != digest:
+                raise HTTPException(409, "Conflicto de identidad del contenido.")
+            return existing
+        try:
+            prepared = DocumentPreparationService().prepare(source, PREPARED_DIR)
+        except UnsupportedDocumentError as exc:
+            raise HTTPException(415, str(exc)) from exc
+        except (ValueError, RuntimeError) as exc:
+            logger.exception("Falló preparación: filename=%r size=%d error_type=%s",
+                             source_name, size, type(exc).__name__)
+            raise HTTPException(400, f"Falló la preparación ({type(exc).__name__}): {str(exc)[:300]}") from exc
+        except OSError:
+            logger.exception("Error de archivos durante preparación: filename=%r size=%d",
+                             source_name, size)
+            raise
+        prepared.source_name = source_name
+        (prepared.output_dir / "manifest.json").write_text(
+            prepared.model_dump_json(indent=2), encoding="utf-8"
+        )
+    return prepared
 
 
 def _safe_file(directory: Path, relative: Path) -> Path:
@@ -155,20 +212,24 @@ def _page(prepared: PreparedDocument, number: int) -> PreparedPage:
 
 
 @router.get("/{document_id}", response_class=HTMLResponse)
-def review_document(document_id: str, page: int = 1) -> HTMLResponse:
+def review_document(document_id: str, page: int = 1, batch_id: str | None = None,
+                    occurrence: int | None = None) -> HTMLResponse:
     directory, prepared = _load(document_id)
+    original_name = _occurrence_name(document_id, batch_id, occurrence) or prepared.source_name
+    context = f"&batch_id={batch_id}&occurrence={occurrence}" if batch_id else ""
+    back_link = f'<p><a href="/review/batches/{batch_id}">Volver al conjunto</a></p>' if batch_id else ""
     current = _page(prepared, page)
     spans = json.loads(_safe_file(directory, current.text_path).read_text(encoding="utf-8"))
     unique_spans = deduplicate_text_spans([TextSpan.model_validate(span) for span in spans])
     text = "\n".join(span.text for span in unique_spans)
     base = f"/review/{document_id}"
-    previous = f'<a href="{base}?page={page - 1}">Anterior</a>' if page > 1 else "Anterior"
-    following = (f'<a href="{base}?page={page + 1}">Siguiente</a>'
+    previous = f'<a href="{base}?page={page - 1}{context}">Anterior</a>' if page > 1 else "Anterior"
+    following = (f'<a href="{base}?page={page + 1}{context}">Siguiente</a>'
                  if page < prepared.page_count else "Siguiente")
     overlay_link = (f'<p><a href="{base}/page/{page}/bbox-overlay">Ver bounding boxes</a></p>'
                     if current.text_span_count > 0 else "")
     return _html(f'''
-        <h1>{escape(prepared.source_name)}</h1>
+        <h1>{escape(original_name)}</h1>
         <p>Tipo de documento: {escape(prepared.kind.value)}</p>
         <p>Página {page} / {prepared.page_count}</p>
         <p>Dimensiones del render: {current.width_px} × {current.height_px} px</p>
@@ -178,9 +239,10 @@ def review_document(document_id: str, page: int = 1) -> HTMLResponse:
         <p>Text spans raw: {len(spans)}</p>
         <p>Text spans únicos: {len(unique_spans)}</p>
         <nav>{previous} | {following}</nav>
+        {back_link}
         {overlay_link}
         <p><a href="/review">Subir otro documento</a> |
-           <a href="{base}/source">Descargar original preservado</a></p>
+           <a href="{base}/source{("?" + context[1:]) if context else ""}">Descargar original preservado</a></p>
         <img src="{base}/pages/{page}/image" alt="Página preparada {page}"
              style="max-width:100%;height:auto">
         <h2>Texto nativo extraído — vista normalizada</h2><pre>{escape(text)}</pre>
@@ -198,10 +260,12 @@ def page_image(document_id: str, page_number: int) -> FileResponse:
 
 
 @router.get("/{document_id}/source")
-def original_source(document_id: str) -> FileResponse:
+def original_source(document_id: str, batch_id: str | None = None,
+                    occurrence: int | None = None) -> FileResponse:
     directory, prepared = _load(document_id)
+    name = _occurrence_name(document_id, batch_id, occurrence) or prepared.source_name
     return FileResponse(_safe_file(directory, prepared.source_path),
-                        media_type="application/octet-stream", filename=prepared.source_path.name)
+                        media_type="application/octet-stream", filename=_download_name(name))
 
 
 @router.get("/{document_id}/page/{page_number}/bbox-overlay")

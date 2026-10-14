@@ -15,6 +15,7 @@ from sng_consulter.review import routes
 def client(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(routes, "UPLOAD_DIR", tmp_path / "runtime/review/uploads")
     monkeypatch.setattr(routes, "PREPARED_DIR", tmp_path / "runtime/review/prepared")
+    monkeypatch.setattr(routes, "BATCH_DIR", tmp_path / "runtime/review/batches")
     with TestClient(app) as client:
         yield client
 
@@ -120,7 +121,7 @@ def test_upload_rewinds_stream_before_copy(client):
 
     stream = BytesIO(pdf_bytes())
     stream.seek(0, 2)
-    result = routes.upload_document(UploadFile(stream, filename="at-end.pdf"))
+    result = routes.upload_documents([UploadFile(stream, filename="at-end.pdf")])
     assert result.status_code == 303
     assert stream.closed
     assert list(routes.UPLOAD_DIR.iterdir()) == []
@@ -323,6 +324,11 @@ def test_multiple_documents_and_photos_in_one_upload(client):
     assert "plano.pdf" in response.text
     assert "foto José.png" in response.text
     assert response.text.count("Revisar documento") == 2
+    batch_id = str(response.url).rsplit("/", 1)[1]
+    batch = json.loads((routes.BATCH_DIR / batch_id / "manifest.json").read_text(encoding="utf-8"))
+    assert batch["batch_id"] == batch_id
+    assert len(batch["documents"]) == 2
+    assert [entry["original_name"] for entry in batch["documents"]] == ["plano.pdf", "foto José.png"]
     manifests = list(routes.PREPARED_DIR.glob("*/manifest.json"))
     assert len(manifests) == 2
     originals = {"plano.pdf": content, "foto José.png": image.getvalue()}
@@ -331,6 +337,7 @@ def test_multiple_documents_and_photos_in_one_upload(client):
         assert (path.parent / data["source_path"]).read_bytes() == originals[data["source_name"]]
         assert client.get(f'/review/{data["document_id"]}').status_code == 200
         assert client.get(f'/review/{data["document_id"]}/pages/1/image').status_code == 200
+        assert data["document_id"] in {entry["document_id"] for entry in batch["documents"]}
     assert list(routes.UPLOAD_DIR.iterdir()) == []
 
 
@@ -350,6 +357,10 @@ def test_batch_continues_after_invalid_files_and_escapes_names(client):
     assert "Error (415)" in response.text
     assert len(list(routes.PREPARED_DIR.glob("*/manifest.json"))) == 1
     assert list(routes.UPLOAD_DIR.iterdir()) == []
+    batch_id = str(response.url).rsplit("/", 1)[1]
+    batch = json.loads((routes.BATCH_DIR / batch_id / "manifest.json").read_text(encoding="utf-8"))
+    assert [entry["status"] for entry in batch["documents"]] == ["error", "prepared", "error", "error"]
+    assert batch["documents"][0]["document_id"] is None
 
 
 def test_batch_closes_all_uploads_on_unexpected_error(client, monkeypatch):
@@ -360,7 +371,123 @@ def test_batch_closes_all_uploads_on_unexpected_error(client, monkeypatch):
     def fail(*args):
         raise OSError("disk error")
 
-    monkeypatch.setattr(routes, "upload_document", fail)
+    monkeypatch.setattr(routes, "_prepare_upload", fail)
     with pytest.raises(OSError, match="disk error"):
         routes.upload_documents(uploads)
     assert all(upload.file.closed for upload in uploads)
+
+
+def test_identical_content_preserves_occurrences_and_prepares_only_once(client, monkeypatch):
+    from urllib.parse import unquote
+
+    prepare = routes.DocumentPreparationService.prepare
+    calls = []
+
+    def track(service, source, output_root):
+        calls.append(source)
+        return prepare(service, source, output_root)
+
+    monkeypatch.setattr(routes.DocumentPreparationService, "prepare", track)
+    content = pdf_bytes()
+    names = ["primero.pdf", "../../Planos/Fachada José.pdf"]
+    response = client.post("/review/upload", files=[("document", (name, content)) for name in names],
+                           follow_redirects=False)
+    assert response.status_code == 303
+    batch_url = response.headers["location"]
+    batch_id = batch_url.rsplit("/", 1)[1]
+    path = routes.BATCH_DIR / batch_id / "manifest.json"
+    batch = json.loads(path.read_text(encoding="utf-8"))
+    assert len(calls) == 1
+    entries = batch["documents"]
+    assert [entry["original_name"] for entry in entries] == names
+    assert entries[0]["document_id"] == entries[1]["document_id"]
+    assert client.get(batch_url).text.count("Revisar documento") == 2
+    manifests = list(routes.PREPARED_DIR.glob("*/manifest.json"))
+    assert len(manifests) == 1
+    canonical = json.loads(manifests[0].read_text(encoding="utf-8"))
+    assert canonical["source_name"] == names[0]
+    assert "batch_id" not in canonical
+    for index, name in enumerate(names):
+        base = f'/review/{entries[index]["document_id"]}'
+        context = f"?batch_id={batch_id}&occurrence={index}"
+        review = client.get(base + context)
+        assert review.status_code == 200
+        assert name in review.text
+        assert f'href="{batch_url}"' in review.text
+        assert f"page=2&batch_id={batch_id}&occurrence={index}" in review.text
+        assert client.get(base + context + "&page=2").status_code == 200
+        original = client.get(base + "/source" + context)
+        assert original.content == content
+        disposition = unquote(original.headers["content-disposition"])
+        assert name.rsplit("/", 1)[-1] in disposition
+        assert "../" not in disposition
+    assert client.get(base + f"?batch_id={batch_id}&occurrence=8").status_code == 404
+    assert client.get("/review/batches/not-a-batch").status_code == 404
+    assert client.get("/review/batches/" + "0" * 32).status_code == 404
+    assert list(routes.UPLOAD_DIR.iterdir()) == []
+
+
+@pytest.mark.parametrize("name,expected", [
+    ("../../original.pdf", "original.pdf"),
+    (r"C:\secret\original.pdf", "original.pdf"),
+    ("plano con espacios.pdf", "plano con espacios.pdf"),
+    ("plano\r\n.pdf", "plano.pdf"),
+])
+def test_download_name_is_safe_basename(client, name, expected):
+    from urllib.parse import unquote
+
+    assert routes._download_name(name) == expected
+    response = client.post("/review/upload", files={"document": ("original.pdf", pdf_bytes())},
+                           follow_redirects=False)
+    url = response.headers["location"]
+    manifest = routes.PREPARED_DIR / url.rsplit("/", 1)[1] / "manifest.json"
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    data["source_name"] = name
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    download = client.get(url + "/source")
+    assert download.status_code == 200
+    assert expected in unquote(download.headers["content-disposition"])
+    assert "document.pdf" not in download.headers["content-disposition"]
+
+
+def test_upload_handler_closes_each_stream_once_on_success_and_validation_error(client):
+    from fastapi import UploadFile
+
+    class TrackedStream(BytesIO):
+        def __init__(self, content):
+            super().__init__(content)
+            self.close_count = 0
+
+        def close(self):
+            self.close_count += 1
+            super().close()
+
+    streams = [TrackedStream(pdf_bytes()), TrackedStream(b"invalid")]
+    result = routes.upload_documents([
+        UploadFile(streams[0], filename="valid.pdf"), UploadFile(streams[1], filename="invalid.pdf"),
+    ])
+    assert result.status_code == 303
+    assert [stream.close_count for stream in streams] == [1, 1]
+    assert all(stream.closed for stream in streams)
+    assert list(routes.UPLOAD_DIR.iterdir()) == []
+
+
+def test_single_reupload_with_new_name_keeps_canonical_metadata(client, monkeypatch):
+    content = pdf_bytes()
+    first = client.post("/review/upload", files={"document": ("first.pdf", content)}, follow_redirects=False)
+    document_id = first.headers["location"].rsplit("/", 1)[1]
+    manifest = routes.PREPARED_DIR / document_id / "manifest.json"
+    before = manifest.read_bytes()
+
+    def no_repreparation(*args, **kwargs):
+        pytest.fail("Existing identical content should be reused")
+
+    monkeypatch.setattr(routes.DocumentPreparationService, "prepare", no_repreparation)
+    second = client.post("/review/upload", files={"document": ("renamed.pdf", content)}, follow_redirects=False)
+    batch_url = second.headers["location"]
+    assert batch_url.startswith("/review/batches/")
+    batch_id = batch_url.rsplit("/", 1)[1]
+    download = client.get(f"/review/{document_id}/source?batch_id={batch_id}&occurrence=0")
+    assert download.content == content
+    assert 'filename="renamed.pdf"' in download.headers["content-disposition"]
+    assert manifest.read_bytes() == before
