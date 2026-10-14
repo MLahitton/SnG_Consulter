@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, Field, FiniteFloat
 
@@ -39,9 +40,7 @@ class PreparedPage(BaseModel):
     coordinate_height: float = Field(gt=0, allow_inf_nan=False)
     coordinate_unit: CoordinateUnit
     # Native text is unrotated; PDF rendering applies page.rotation_matrix.
-    source_to_visible_matrix: tuple[FiniteFloat, FiniteFloat, FiniteFloat, FiniteFloat, FiniteFloat, FiniteFloat] = (
-        1, 0, 0, 1, 0, 0
-    )
+    source_to_visible_matrix: tuple[FiniteFloat, FiniteFloat, FiniteFloat, FiniteFloat, FiniteFloat, FiniteFloat]
     image_path: Path
     text_path: Path
     native_text_available: bool
@@ -49,6 +48,7 @@ class PreparedPage(BaseModel):
 
 
 class PreparedDocument(BaseModel):
+    preparation_contract_version: Literal[1] = 1
     document_id: str
     source_name: str
     source_sha256: str

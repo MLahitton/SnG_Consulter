@@ -501,3 +501,104 @@ def test_single_reupload_with_new_name_keeps_canonical_metadata(client, monkeypa
     assert download.content == content
     assert 'filename="renamed.pdf"' in download.headers["content-disposition"]
     assert manifest.read_bytes() == before
+
+
+@pytest.mark.parametrize("missing_field", ["source_to_visible_matrix", "coordinate_width"])
+def test_legacy_rotated_manifest_is_rejected_then_regenerated_atomically(client, monkeypatch, missing_field):
+    with fitz.open() as pdf:
+        for rotation in (90, 270):
+            page = pdf.new_page(width=100, height=140)
+            page.insert_text((10, 30), "Native text")
+            page.set_rotation(rotation)
+        content = pdf.tobytes()
+    response = client.post("/review/upload", files={"document": ("rotated.pdf", content)}, follow_redirects=False)
+    url = response.headers["location"]
+    directory = routes.PREPARED_DIR / url.rsplit("/", 1)[1]
+    manifest_path = directory / "manifest.json"
+    data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    del data["pages"][1][missing_field]
+    manifest_path.write_text(json.dumps(data), encoding="utf-8")
+    old_files = {path.relative_to(directory): path.read_bytes() for path in directory.rglob("*") if path.is_file()}
+    assert client.get(url).status_code == 409
+    assert client.get(url + "/page/1/bbox-overlay").status_code == 409
+    assert manifest_path.read_bytes() == old_files[Path("manifest.json")]
+    prepare = routes.DocumentPreparationService.prepare
+    calls = []
+
+    def track(service, source, output_root):
+        assert {path.relative_to(directory): path.read_bytes() for path in directory.rglob("*") if path.is_file()} == old_files
+        calls.append(source)
+        return prepare(service, source, output_root)
+
+    monkeypatch.setattr(routes.DocumentPreparationService, "prepare", track)
+    again = client.post("/review/upload", files={"document": ("rotated.pdf", content)}, follow_redirects=False)
+    assert again.status_code == 303
+    assert again.headers["location"] == url
+    assert len(calls) == 1
+    current = json.loads(manifest_path.read_text(encoding="utf-8"))
+    with fitz.open(stream=content, filetype="pdf") as pdf:
+        assert [page["source_to_visible_matrix"] for page in current["pages"]] == [list(page.rotation_matrix) for page in pdf]
+    assert client.get(url).status_code == 200
+    assert client.get(url + "/page/1/bbox-overlay").status_code == 200
+    assert list(routes.PREPARED_DIR.glob(".staging-*")) == []
+    assert list(routes.UPLOAD_DIR.iterdir()) == []
+
+
+def test_failed_legacy_regeneration_keeps_prior_manifest_and_files(client, monkeypatch):
+    content = pdf_bytes()
+    response = client.post("/review/upload", files={"document": ("sample.pdf", content)}, follow_redirects=False)
+    url = response.headers["location"]
+    directory = routes.PREPARED_DIR / url.rsplit("/", 1)[1]
+    manifest_path = directory / "manifest.json"
+    data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    del data["pages"][0]["source_to_visible_matrix"]
+    manifest_path.write_text(json.dumps(data), encoding="utf-8")
+    before = {path.relative_to(directory): path.read_bytes() for path in directory.rglob("*") if path.is_file()}
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("intentional preparation failure")
+
+    monkeypatch.setattr(routes.DocumentPreparationService, "_prepare_pdf", fail)
+    failed = client.post("/review/upload", files={"document": ("sample.pdf", content)})
+    assert failed.status_code == 400
+    assert {path.relative_to(directory): path.read_bytes() for path in directory.rglob("*") if path.is_file()} == before
+    assert list(routes.PREPARED_DIR.glob(".staging-*")) == []
+    assert list(routes.UPLOAD_DIR.iterdir()) == []
+
+
+def test_image_without_current_contract_version_is_regenerated_for_exif(client, monkeypatch):
+    with Image.new("RGB", (40, 20), "red") as image:
+        exif = Image.Exif()
+        exif[274] = 6
+        buffer = BytesIO()
+        image.save(buffer, format="JPEG", exif=exif)
+    content = buffer.getvalue()
+    response = client.post("/review/upload", files={"document": ("photo.jpg", content)}, follow_redirects=False)
+    url = response.headers["location"]
+    directory = routes.PREPARED_DIR / url.rsplit("/", 1)[1]
+    manifest_path = directory / "manifest.json"
+    data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    del data["preparation_contract_version"]
+    # Reproduce the old output, which already contained an identity matrix.
+    with Image.open(BytesIO(content)) as image:
+        image.convert("RGB").save(directory / data["pages"][0]["image_path"], format="WEBP")
+    data["pages"][0].update(width_px=40, height_px=20, coordinate_width=40, coordinate_height=20)
+    manifest_path.write_text(json.dumps(data), encoding="utf-8")
+    assert client.get(url).status_code == 409
+    prepare = routes.DocumentPreparationService.prepare
+    calls = []
+
+    def track(service, source, output_root):
+        calls.append(source)
+        return prepare(service, source, output_root)
+
+    monkeypatch.setattr(routes.DocumentPreparationService, "prepare", track)
+    again = client.post("/review/upload", files={"document": ("photo.jpg", content)}, follow_redirects=False)
+    assert again.status_code == 303
+    assert len(calls) == 1
+    current = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert current["preparation_contract_version"] == 1
+    page = current["pages"][0]
+    assert (page["width_px"], page["height_px"]) == (20, 40)
+    assert page["source_to_visible_matrix"] == [1, 0, 0, 1, 0, 0]
+    assert (directory / current["source_path"]).read_bytes() == content

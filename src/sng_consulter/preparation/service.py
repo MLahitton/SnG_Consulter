@@ -7,7 +7,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import pymupdf as fitz
-from PIL import Image
+from PIL import Image, ImageOps
 
 from .models import (
     BoundingBox,
@@ -171,9 +171,9 @@ class DocumentPreparationService:
     ) -> PreparedDocument:
         image_path = pages_dir / "0001.webp"
         with Image.open(source) as image:
-            rgb = image.convert("RGB")
-            width, height = rgb.size
-            rgb.save(image_path, format="WEBP", quality=self._webp_quality, method=6)
+            with ImageOps.exif_transpose(image) as visible, visible.convert("RGB") as rgb:
+                width, height = rgb.size
+                rgb.save(image_path, format="WEBP", quality=self._webp_quality, method=6)
 
         text_path = text_dir / "0001.json"
         text_path.write_text("[]\n", encoding="utf-8")
@@ -185,6 +185,7 @@ class DocumentPreparationService:
             coordinate_width=width,
             coordinate_height=height,
             coordinate_unit=CoordinateUnit.PIXEL,
+            source_to_visible_matrix=(1, 0, 0, 1, 0, 0),
             image_path=image_path.relative_to(document_dir),
             text_path=text_path.relative_to(document_dir),
             native_text_available=False,

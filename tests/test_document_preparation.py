@@ -42,6 +42,7 @@ def test_prepare_pdf_preserves_pages_and_native_text(tmp_path: Path) -> None:
     assert list(spans[0]["bbox"].values()) == list(expected_bbox)
     manifest = json.loads((document_dir / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["pages"][0]["coordinate_unit"] == "PDF_POINT"
+    assert all(page["source_to_visible_matrix"] == [1, 0, 0, 1, 0, 0] for page in manifest["pages"])
     assert manifest["pages"][0]["coordinate_width"] == 600
     assert manifest["pages"][0]["coordinate_height"] == 800
 

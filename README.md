@@ -7,6 +7,9 @@ Servicio de preparación documental para Steel & Glass. Estado actual: **Fase 1*
 - Formatos implementados y probados: PDF, JPG, JPEG, PNG, WEBP y BMP.
   TIFF, DOCX, XLSX, DWG, HEIC y otros formatos no están soportados.
 - Original preservado byte por byte en `source/`.
+- La orientación EXIF de imágenes se aplica con `ImageOps.exif_transpose()` antes
+  de guardar el WEBP. Dimensiones y coordenadas `PIXEL` describen la imagen visible
+  ya orientada, con matriz identidad explícita; el original no se modifica.
 - Todas las páginas renderizadas a WEBP; render PDF base a 180 DPI.
 - Texto nativo de PDF y bounding boxes RAW en `text/`, sin OCR ni interpretación.
   Un PDF sin texto nativo sigue siendo válido: conserva todas sus páginas
@@ -21,6 +24,12 @@ Servicio de preparación documental para Steel & Glass. Estado actual: **Fase 1*
   escala al render. Las bbox RAW de PyMuPDF no están rotadas; `page.rect` y el
   render sí. PyMuPDF ya normaliza el origen visible del CropBox, también con
   MediaBox desplazado, por lo que no se aplica una segunda traslación del crop.
+- El contrato persistido actual lleva `preparation_contract_version: 1` y exige
+  matriz explícita en cada página PDF/IMAGE. `/review` rechaza con 409 los manifests
+  anteriores sin versión, coordenadas o matriz; resubir el mismo contenido los
+  regenera mediante staging, sin borrar primero la preparación anterior.
+  No hay migración por inferencia ni un pipeline alternativo. La versión distingue
+  también imágenes anteriores a la normalización EXIF que ya tenían matriz identidad.
 - `deduplicate_text_spans()` ofrece una vista no destructiva: texto exactamente
   igual y los cuatro extremos de bbox dentro de 0.01 unidades de origen.
   Conserva la primera ocurrencia y el orden. Los archivos RAW no cambian.
@@ -149,15 +158,14 @@ arquitectónica. Es una herramienta local de revisión, sin autenticación.
 
 - Rotaciones PDF 0/90/180/270, CropBox distinto del MediaBox y MediaBox con origen
   desplazado están comprobados con tests sintéticos y overlay. Preparados antiguos
-  sin la matriz no pueden recuperar automáticamente la rotación: deben regenerarse
-  antes de confiar en overlays de páginas rotadas.
+  incompatibles requieren resubida para su regeneración antes de revisar overlays.
 - La preparación es síncrona, carga el PDF en memoria y no tiene escritura
   durable frente a corte de proceso/sistema ni bloqueo para uploads concurrentes
   del mismo contenido. El reemplazo usa dos renames, con una breve ventana sin
   directorio final; no es una transacción del sistema de archivos.
 - Excepciones controladas limpian staging y uploads. Un cierre abrupto del proceso
   puede dejar staging o backups; no hay recuperación ni purga automática.
-- Los manifests anteriores sin coordenadas no se migran. El Harness devuelve
-  409; su reutilización impide que una simple resubida regenere esa salida.
+- No se migran metadatos antiguos por inferencia. La regeneración requiere disponer
+  del archivo original para resubirlo; si falla, la preparación anterior se conserva.
 - El cierre de un caso real requiere su revisión manual. La suite pasando no
   certifica por sí sola todos los documentos ni el benchmark completo.

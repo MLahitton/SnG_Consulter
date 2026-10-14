@@ -26,6 +26,13 @@ BATCH_DIR = Path("runtime/review/batches")
 logger = logging.getLogger(__name__)
 
 
+class IncompatiblePreparedManifestError(HTTPException):
+    """An older persisted contract requires preparation, not inferred metadata."""
+
+    def __init__(self) -> None:
+        super().__init__(409, "Este manifest usa un contrato de preparación incompatible o incompleto. Vuelve a subir el documento desde /review.")
+
+
 def _html(body: str) -> HTMLResponse:
     return HTMLResponse(
         '<!doctype html><html lang="es"><head><meta charset="utf-8">'
@@ -159,10 +166,13 @@ def _prepare_upload(document: UploadFile) -> PreparedDocument:
             digest = hashlib.file_digest(handle, "sha256").hexdigest()
         document_id = digest[:16]
         if (PREPARED_DIR / document_id / "manifest.json").is_file():
-            _, existing = _load(document_id)
-            if existing.source_sha256 != digest:
-                raise HTTPException(409, "Conflicto de identidad del contenido.")
-            return existing
+            try:
+                _, existing = _load(document_id, expected_sha256=digest)
+            except IncompatiblePreparedManifestError:
+                # The atomic service retains the old version until publication.
+                pass
+            else:
+                return existing
         try:
             prepared = DocumentPreparationService().prepare(source, PREPARED_DIR)
         except UnsupportedDocumentError as exc:
@@ -192,15 +202,18 @@ def _safe_file(directory: Path, relative: Path) -> Path:
     return candidate
 
 
-def _load(document_id: str) -> tuple[Path, PreparedDocument]:
+def _load(document_id: str, expected_sha256: str | None = None) -> tuple[Path, PreparedDocument]:
     if not re.fullmatch(r"[0-9a-f]{16}", document_id):
         raise HTTPException(404, "Documento no encontrado.")
     directory = PREPARED_DIR / document_id
     manifest = _safe_file(directory, Path("manifest.json"))
     data = json.loads(manifest.read_text(encoding="utf-8"))
-    coordinate_fields = {"coordinate_width", "coordinate_height", "coordinate_unit"}
-    if any(not coordinate_fields.issubset(page) for page in data["pages"]):
-        raise HTTPException(409, "Este manifest no contiene metadatos de coordenadas. Vuelve a subir el documento desde /review.")
+    if expected_sha256 is not None and data["source_sha256"] != expected_sha256:
+        raise HTTPException(409, "Conflicto de identidad del contenido.")
+    coordinate_fields = {"coordinate_width", "coordinate_height", "coordinate_unit", "source_to_visible_matrix"}
+    if (data.get("preparation_contract_version") != PreparedDocument.model_fields["preparation_contract_version"].default
+            or any(not coordinate_fields.issubset(page) for page in data["pages"])):
+        raise IncompatiblePreparedManifestError()
     return directory, PreparedDocument.model_validate(data)
 
 

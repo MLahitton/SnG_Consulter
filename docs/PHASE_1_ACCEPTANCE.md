@@ -35,7 +35,9 @@ Antes de dar por cerrado un caso, cargarlo en `/review` y revisar cada página:
 
 - El original descargado conserva exactamente los bytes y un nombre original seguro.
 - El PDF conserva el número de páginas; el WEBP muestra la página completa y legible a 180 DPI.
-- Una imagen se prepara como una página visual con sus dimensiones originales.
+- Una imagen se prepara como una página visual aplicando orientación EXIF con
+  Pillow. Las dimensiones del render y del espacio `PIXEL` corresponden a la imagen
+  visible orientada, con matriz identidad explícita. `source/` conserva todos los bytes originales.
 - El texto nativo y las bbox RAW se preservan cuando existen. Páginas escaneadas
   e imágenes sin texto nativo no reciben texto inventado.
 - Un PDF sin texto nativo es válido y conserva sus páginas con spans vacíos;
@@ -46,6 +48,11 @@ Antes de dar por cerrado un caso, cargarlo en `/review` y revisar cada página:
 - La matriz `source_to_visible_matrix` aplica la rotación PDF antes del escalado.
   Los tests sintéticos verifican 0/90/180/270, CropBox y MediaBox desplazado contra
   los píxeles del texto. PyMuPDF ya normaliza el origen del crop; no se compensa dos veces.
+- Cada manifest actual guarda `preparation_contract_version: 1` y matriz explícita
+  en todas las páginas. La vista no infiere identidad de un manifest antiguo:
+  devuelve 409. Al resubir, el servicio regenera con staging cualquier contrato
+  anterior sin versión/coordenadas/matriz, conservando la salida vieja si falla.
+  Esto incluye imágenes anteriores al ajuste EXIF con matriz identidad ya persistida.
 - La vista normalizada conserva textos iguales en distintas posiciones y elimina
   solamente texto exacto con bbox igual o dentro de la tolerancia conservadora
   de 0.01 unidades de origen. Se muestran conteos RAW y únicos.
@@ -93,8 +100,8 @@ pasando no implica por sí sola que todos los documentos reales estén aceptados
 
 Los límites actuales están registrados en el README: preparación síncrona, sin
 bloqueos concurrentes ni recuperación automática frente a cierre abrupto,
-reemplazo con dos renames y ausencia de migración de manifests antiguos.
-Los preparados antiguos sin matriz requieren regeneración para verificar rotaciones.
+reemplazo con dos renames y ausencia de migración por inferencia de manifests antiguos.
+Los preparados incompatibles se regeneran al resubir el original; no se reutilizan silenciosamente.
 No se declara durabilidad transaccional ante fallos del sistema.
 
 ## Fuera del alcance

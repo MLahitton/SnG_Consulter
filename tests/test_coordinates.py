@@ -9,6 +9,7 @@ def make_page(**overrides) -> PreparedPage:
     values = dict(
         page_number=1, width_px=1000, height_px=600,
         coordinate_width=400, coordinate_height=300, coordinate_unit="PDF_POINT",
+        source_to_visible_matrix=(1, 0, 0, 1, 0, 0),
         image_path="pages/0001.webp", text_path="text/0001.json",
         native_text_available=False, text_span_count=0,
     )
@@ -35,6 +36,13 @@ def test_image_pixel_coordinates_at_one_to_one_scale():
     page = make_page(coordinate_unit="PIXEL", coordinate_width=1000, coordinate_height=600)
     bbox = BoundingBox(x0=0, y0=0, x1=50, y1=20)
     assert source_bbox_to_render_pixels(bbox, page) == bbox
+
+
+def test_page_contract_requires_explicit_source_to_visible_matrix():
+    data = make_page().model_dump(mode="json")
+    del data["source_to_visible_matrix"]
+    with pytest.raises(ValidationError, match="source_to_visible_matrix"):
+        PreparedPage.model_validate(data)
 
 
 @pytest.mark.parametrize("field", ["width_px", "height_px", "coordinate_width", "coordinate_height"])
