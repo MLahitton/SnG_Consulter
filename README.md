@@ -4,18 +4,57 @@ Servicio de preparación documental para Steel & Glass. Estado actual: **Fase 1*
 
 ## Preparación disponible
 
-- PDF multipágina y JPG/JPEG/PNG/WEBP/BMP. TIFF no está soportado.
+- Formatos implementados y probados: PDF, JPG, JPEG, PNG, WEBP y BMP.
+  TIFF, DOCX, XLSX, DWG, HEIC y otros formatos no están soportados.
 - Original preservado byte por byte en `source/`.
 - Todas las páginas renderizadas a WEBP; render PDF base a 180 DPI.
 - Texto nativo de PDF y bounding boxes RAW en `text/`, sin OCR ni interpretación.
+  Un PDF sin texto nativo sigue siendo válido: conserva todas sus páginas
+  visuales con spans vacíos. Las imágenes no reciben texto inventado.
 - `manifest.json` con identidad del contenido, páginas, rutas y dimensiones.
 - Dimensiones de origen (`coordinate_width`, `coordinate_height`, `coordinate_unit`)
   separadas de las dimensiones del render (`width_px`, `height_px`).
   PDF usa `PDF_POINT`; imágenes usan `PIXEL`.
-- `source_bbox_to_render_pixels()` escala una bbox sin modificar el original.
+- `source_bbox_to_render_pixels()` transforma una bbox sin modificar el original.
+  Cada página conserva `source_to_visible_matrix`: `page.rotation_matrix` en
+  PDF e identidad en imágenes. Se transforman las cuatro esquinas y luego se
+  escala al render. Las bbox RAW de PyMuPDF no están rotadas; `page.rect` y el
+  render sí. PyMuPDF ya normaliza el origen visible del CropBox, también con
+  MediaBox desplazado, por lo que no se aplica una segunda traslación del crop.
 - `deduplicate_text_spans()` ofrece una vista no destructiva: texto exactamente
   igual y los cuatro extremos de bbox dentro de 0.01 unidades de origen.
   Conserva la primera ocurrencia y el orden. Los archivos RAW no cambian.
+
+## Regla de arquitectura
+
+SnG_Consulter es document-agnostic: la preparación depende del formato,
+contenido, dimensiones y texto nativo observables, no de clientes, nombres
+concretos de archivos, páginas conocidas, posiciones fijas ni layouts de fixtures.
+Los documentos usados durante construcción son exclusivamente casos de prueba.
+Los nombres originales se conservan como metadata de ocurrencia y descarga;
+no determinan cómo interpretar o preparar una página.
+
+Existe un único flujo: `DocumentPreparationService.prepare()` dirige los
+tratamientos de entrada PDF e imagen al mismo contrato `PreparedDocument` y
+`PreparedPage`. La regla para añadir formatos es adaptar la entrada manteniendo
+ese contrato y la semántica de consumo. Actualmente el despacho está implementado
+por extensión y métodos PDF/imagen; no hay un registro o framework de adaptadores.
+Esta auditoría no añade formatos ni implementa fases posteriores.
+
+La relación conceptual es:
+
+```text
+ReviewBatch
+  └── PreparedDocument[] (referencias; una por ocurrencia válida)
+        ├── source/
+        ├── pages/
+        ├── text/ (RAW)
+        └── manifest.json
+```
+
+El batch guarda referencias y resultados, no directorios de documentos propios.
+Varias ocurrencias pueden referenciar el mismo contenido preparado; una entrada
+fallida registra su error y no tiene `PreparedDocument`.
 
 ## Estructura local
 
@@ -33,6 +72,14 @@ runtime/review/
 
 `runtime/` está ignorado por Git. Las salidas de preparación también pueden
 producirse bajo otra raíz mediante `DocumentPreparationService`.
+
+El servicio prepara source, páginas, texto y manifest dentro de `.staging-*`
+en la misma raíz de salida. El manifest contiene las rutas finales. Solo tras
+completar todo publica el directorio mediante rename. Si hay una versión previa,
+se conserva hasta ese momento y se restaura si falla la publicación. El staging
+se elimina ante éxito o excepción; no queda un `PreparedDocument` parcial.
+Si también falla la restauración por un error del sistema de archivos, los bytes
+anteriores permanecen en `.previous-*` para recuperación manual.
 
 ## Review Harness
 
@@ -57,7 +104,10 @@ La revisión muestra dimensiones, unidades, texto normalizado, contadores RAW y
 únicos, y los spans RAW con sus bounding boxes. **Ver bounding boxes** genera
 un PNG en memoria desde el WEBP preparado, usando los spans únicos. No altera
 el manifest, el WEBP ni el texto. Rectángulos inválidos o fuera de límites se
-omiten con registro. El enlace se oculta en páginas sin spans.
+omiten con registro. En páginas sin texto ni spans se ocultan el enlace de
+overlay y las secciones vacías de texto y spans; los contadores permanecen.
+La imagen se presenta sin deformación, con ancho máximo de 100% y altura máxima
+de 80vh. El enlace de tamaño completo abre el WEBP existente sin generar copias.
 
 `/review/<document_id>/source` descarga los bytes preservados con un basename
 seguro del nombre original. Con contexto de batch usa el nombre de esa
@@ -86,10 +136,28 @@ python -m pytest
 
 ## Validación de Fase 1
 
-La aceptación incluye revisión manual documento por documento y página por
-página con el Harness, además de tests automatizados. El benchmark se usa después
-como regresión de los casos ya revisados; no es la única forma de validar.
+La validación de construcción se ha realizado manualmente documento por documento
+y página por página con el Harness, además de tests automatizados. El benchmark
+completo queda pendiente como regresión posterior; no es la única forma de validar
+ni se declara ejecutado por esta auditoría.
 Consulta [criterios de aceptación](docs/PHASE_1_ACCEPTANCE.md).
 
 Esta fase no ejecuta IA, OCR, Discovery, extracción técnica ni interpretación
 arquitectónica. Es una herramienta local de revisión, sin autenticación.
+
+## Límites actuales de Fase 1
+
+- Rotaciones PDF 0/90/180/270, CropBox distinto del MediaBox y MediaBox con origen
+  desplazado están comprobados con tests sintéticos y overlay. Preparados antiguos
+  sin la matriz no pueden recuperar automáticamente la rotación: deben regenerarse
+  antes de confiar en overlays de páginas rotadas.
+- La preparación es síncrona, carga el PDF en memoria y no tiene escritura
+  durable frente a corte de proceso/sistema ni bloqueo para uploads concurrentes
+  del mismo contenido. El reemplazo usa dos renames, con una breve ventana sin
+  directorio final; no es una transacción del sistema de archivos.
+- Excepciones controladas limpian staging y uploads. Un cierre abrupto del proceso
+  puede dejar staging o backups; no hay recuperación ni purga automática.
+- Los manifests anteriores sin coordenadas no se migran. El Harness devuelve
+  409; su reutilización impide que una simple resubida regenere esa salida.
+- El cierre de un caso real requiere su revisión manual. La suite pasando no
+  certifica por sí sola todos los documentos ni el benchmark completo.

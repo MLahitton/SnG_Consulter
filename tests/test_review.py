@@ -58,8 +58,14 @@ def test_pdf_review_flow(client, monkeypatch):
     monkeypatch.setattr(routes.DocumentPreparationService, "prepare", no_reprocessing)
     first = client.get(url)
     assert first.status_code == 200
+    assert f'<img src="{url}/pages/1/image"' in first.text
+    assert 'max-width:100%;max-height:80vh;width:auto;height:auto;object-fit:contain' in first.text
+    assert f'href="{url}/pages/1/image" target="_blank" rel="noopener"' in first.text
+    assert "Ver imagen preparada en tamaño completo" in first.text
     assert "Página 1 / 2" in first.text
     assert "Native text" in first.text
+    assert "Texto nativo extraído" in first.text
+    assert "Text spans RAW y bounding boxes originales" in first.text
     assert "bbox" in first.text
     assert f'href="{url}/page/1/bbox-overlay"' in first.text
     assert "Ver bounding boxes" in first.text
@@ -71,6 +77,8 @@ def test_pdf_review_flow(client, monkeypatch):
     assert "Página 2 / 2" in second.text
     assert "Texto nativo: No" in second.text
     assert "Ver bounding boxes" not in second.text
+    assert "Texto nativo extraído" not in second.text
+    assert "Text spans RAW y bounding boxes originales" not in second.text
     image = client.get(url + "/pages/2/image")
     assert image.status_code == 200
     assert image.headers["content-type"] == "image/webp"
@@ -170,6 +178,8 @@ def test_image_upload_without_invented_text(client, suffix, format):
     assert "Text spans raw: 0" in response.text
     assert "Text spans únicos: 0" in response.text
     assert "Ver bounding boxes" not in response.text
+    assert "Texto nativo extraído" not in response.text
+    assert "Text spans RAW y bounding boxes originales" not in response.text
 
 
 def test_untrusted_name_and_manifest_paths(client, tmp_path):

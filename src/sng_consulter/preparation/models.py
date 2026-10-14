@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import StrEnum
 from pathlib import Path
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, FiniteFloat
 
 
 class DocumentKind(StrEnum):
@@ -38,6 +38,10 @@ class PreparedPage(BaseModel):
     coordinate_width: float = Field(gt=0, allow_inf_nan=False)
     coordinate_height: float = Field(gt=0, allow_inf_nan=False)
     coordinate_unit: CoordinateUnit
+    # Native text is unrotated; PDF rendering applies page.rotation_matrix.
+    source_to_visible_matrix: tuple[FiniteFloat, FiniteFloat, FiniteFloat, FiniteFloat, FiniteFloat, FiniteFloat] = (
+        1, 0, 0, 1, 0, 0
+    )
     image_path: Path
     text_path: Path
     native_text_available: bool

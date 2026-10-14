@@ -228,6 +228,12 @@ def review_document(document_id: str, page: int = 1, batch_id: str | None = None
                  if page < prepared.page_count else "Siguiente")
     overlay_link = (f'<p><a href="{base}/page/{page}/bbox-overlay">Ver bounding boxes</a></p>'
                     if current.text_span_count > 0 else "")
+    text_sections = (f'''
+        <h2>Texto nativo extraído — vista normalizada</h2><pre>{escape(text)}</pre>
+        <p>Los spans RAW siguen preservados en disco. El overlay usa spans únicos.</p>
+        <h2>Text spans RAW y bounding boxes originales</h2>
+        <pre>{escape(json.dumps(spans, ensure_ascii=False, indent=2))}</pre>
+    ''' if spans else "")
     return _html(f'''
         <h1>{escape(original_name)}</h1>
         <p>Tipo de documento: {escape(prepared.kind.value)}</p>
@@ -244,11 +250,9 @@ def review_document(document_id: str, page: int = 1, batch_id: str | None = None
         <p><a href="/review">Subir otro documento</a> |
            <a href="{base}/source{("?" + context[1:]) if context else ""}">Descargar original preservado</a></p>
         <img src="{base}/pages/{page}/image" alt="Página preparada {page}"
-             style="max-width:100%;height:auto">
-        <h2>Texto nativo extraído — vista normalizada</h2><pre>{escape(text)}</pre>
-        <p>Los spans RAW siguen preservados en disco. El overlay usa spans únicos.</p>
-        <h2>Text spans RAW y bounding boxes originales</h2>
-        <pre>{escape(json.dumps(spans, ensure_ascii=False, indent=2))}</pre>
+             style="max-width:100%;max-height:80vh;width:auto;height:auto;object-fit:contain">
+        <p><a href="{base}/pages/{page}/image" target="_blank" rel="noopener">Ver imagen preparada en tamaño completo</a></p>
+        {text_sections}
     ''')
 
 

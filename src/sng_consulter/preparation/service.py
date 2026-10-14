@@ -4,6 +4,7 @@ import hashlib
 import json
 import shutil
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import pymupdf as fitz
 from PIL import Image
@@ -48,33 +49,49 @@ class DocumentPreparationService:
 
         sha256 = _sha256(source_path)
         document_id = sha256[:16]
-        document_dir = output_root_path/document_id
-        source_dir = document_dir/"source"
-        pages_dir = document_dir /"pages"
-        text_dir = document_dir / "text"
-
-        if document_dir.exists():
-            shutil.rmtree(document_dir)
-        source_dir.mkdir(parents=True, exist_ok=True)
-        pages_dir.mkdir(parents=True, exist_ok=True)
-        text_dir.mkdir(parents=True, exist_ok=True)
-        preserved_source = source_dir/source_path.name
-        shutil.copy2(source_path, preserved_source)
-
+        document_dir = output_root_path / document_id
         suffix = source_path.suffix.lower()
-        if suffix == ".pdf":
-            result = self._prepare_pdf(source_path, document_id, sha256, document_dir, preserved_source, pages_dir, text_dir)
-        elif suffix in self._IMAGE_SUFFIXES:
-            result = self._prepare_image(source_path, document_id, sha256, document_dir, preserved_source, pages_dir, text_dir)
-        else:
-            shutil.rmtree(document_dir, ignore_errors=True)
+        if suffix != ".pdf" and suffix not in self._IMAGE_SUFFIXES:
             raise UnsupportedDocumentError(f"Unsupported document type: {suffix or '<no extension>'}")
 
-        manifest_path = document_dir / "manifest.json"
-        manifest_path.write_text(
-            result.model_dump_json(indent=2),
-            encoding="utf-8",
-        )
+        output_root_path.mkdir(parents=True, exist_ok=True)
+        # Same filesystem as the final directory, so publication uses renames.
+        with TemporaryDirectory(prefix=f".staging-{document_id}-", dir=output_root_path) as temporary:
+            staging = Path(temporary)
+            staged_document = staging / "document"
+            source_dir = staged_document / "source"
+            pages_dir = staged_document / "pages"
+            text_dir = staged_document / "text"
+            for directory in (source_dir, pages_dir, text_dir):
+                directory.mkdir(parents=True)
+            preserved_source = source_dir / source_path.name
+            shutil.copy2(source_path, preserved_source)
+
+            if suffix == ".pdf":
+                result = self._prepare_pdf(source_path, document_id, sha256, staged_document,
+                                           preserved_source, pages_dir, text_dir)
+            else:
+                result = self._prepare_image(source_path, document_id, sha256, staged_document,
+                                             preserved_source, pages_dir, text_dir)
+            result.output_dir = document_dir
+            (staged_document / "manifest.json").write_text(
+                result.model_dump_json(indent=2), encoding="utf-8"
+            )
+
+            # Keep the prior complete version until the new version is ready.
+            # Outside staging so a failed rollback cannot discard the prior version.
+            backup = output_root_path / f".previous-{staging.name}"
+            had_previous = document_dir.exists()
+            if had_previous:
+                document_dir.rename(backup)
+            try:
+                staged_document.rename(document_dir)
+            except BaseException:
+                if had_previous:
+                    backup.rename(document_dir)
+                raise
+            if had_previous:
+                shutil.rmtree(backup)
         return result
 
     def _prepare_pdf(
@@ -123,6 +140,7 @@ class DocumentPreparationService:
                         coordinate_width=page.rect.width,
                         coordinate_height=page.rect.height,
                         coordinate_unit=CoordinateUnit.PDF_POINT,
+                        source_to_visible_matrix=tuple(page.rotation_matrix),
                         image_path=image_path.relative_to(document_dir),
                         text_path=text_path.relative_to(document_dir),
                         native_text_available=bool(spans),
