@@ -11,6 +11,11 @@ class DocumentKind(StrEnum):
     IMAGE = "IMAGE"
 
 
+class CoordinateUnit(StrEnum):
+    PDF_POINT = "PDF_POINT"
+    PIXEL = "PIXEL"
+
+
 class BoundingBox(BaseModel):
     x0: float
     y0: float
@@ -30,6 +35,9 @@ class PreparedPage(BaseModel):
     page_number: int = Field(ge=1)
     width_px: int = Field(gt=0)
     height_px: int = Field(gt=0)
+    coordinate_width: float = Field(gt=0, allow_inf_nan=False)
+    coordinate_height: float = Field(gt=0, allow_inf_nan=False)
+    coordinate_unit: CoordinateUnit
     image_path: Path
     text_path: Path
     native_text_available: bool
@@ -40,6 +48,7 @@ class PreparedDocument(BaseModel):
     document_id: str
     source_name: str
     source_sha256: str
+    source_path: Path
     kind: DocumentKind
     page_count: int = Field(ge=1)
     output_dir: Path

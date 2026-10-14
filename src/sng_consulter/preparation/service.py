@@ -5,11 +5,12 @@ import json
 import shutil
 from pathlib import Path
 
-import fitz
+import pymupdf as fitz
 from PIL import Image
 
 from .models import (
     BoundingBox,
+    CoordinateUnit,
     DocumentKind,
     PreparedDocument,
     PreparedPage,
@@ -29,7 +30,7 @@ class DocumentPreparationService:
     native text remains a visual page with native_text_available=False.
     """
 
-    _IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"}
+    _IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
 
     def __init__(self, render_dpi: int = 180, webp_quality: int = 90) -> None:
         if render_dpi <= 0:
@@ -47,20 +48,24 @@ class DocumentPreparationService:
 
         sha256 = _sha256(source_path)
         document_id = sha256[:16]
-        document_dir = output_root_path / document_id
-        pages_dir = document_dir / "pages"
+        document_dir = output_root_path/document_id
+        source_dir = document_dir/"source"
+        pages_dir = document_dir /"pages"
         text_dir = document_dir / "text"
 
         if document_dir.exists():
             shutil.rmtree(document_dir)
+        source_dir.mkdir(parents=True, exist_ok=True)
         pages_dir.mkdir(parents=True, exist_ok=True)
         text_dir.mkdir(parents=True, exist_ok=True)
+        preserved_source = source_dir/source_path.name
+        shutil.copy2(source_path, preserved_source)
 
         suffix = source_path.suffix.lower()
         if suffix == ".pdf":
-            result = self._prepare_pdf(source_path, document_id, sha256, document_dir, pages_dir, text_dir)
+            result = self._prepare_pdf(source_path, document_id, sha256, document_dir, preserved_source, pages_dir, text_dir)
         elif suffix in self._IMAGE_SUFFIXES:
-            result = self._prepare_image(source_path, document_id, sha256, document_dir, pages_dir, text_dir)
+            result = self._prepare_image(source_path, document_id, sha256, document_dir, preserved_source, pages_dir, text_dir)
         else:
             shutil.rmtree(document_dir, ignore_errors=True)
             raise UnsupportedDocumentError(f"Unsupported document type: {suffix or '<no extension>'}")
@@ -78,6 +83,7 @@ class DocumentPreparationService:
         document_id: str,
         sha256: str,
         document_dir: Path,
+        preserved_source: Path,
         pages_dir: Path,
         text_dir: Path,
     ) -> PreparedDocument:
@@ -85,7 +91,9 @@ class DocumentPreparationService:
         zoom = self._render_dpi / 72.0
         matrix = fitz.Matrix(zoom, zoom)
 
-        with fitz.open(source) as pdf:
+        # Opening malformed PDFs by filename can leave a Windows file handle
+        # alive in the exception traceback, preventing temporary upload cleanup.
+        with fitz.open(stream=source.read_bytes(), filetype="pdf") as pdf:
             if pdf.page_count == 0:
                 raise ValueError("PDF has no pages")
 
@@ -112,6 +120,9 @@ class DocumentPreparationService:
                         page_number=page_number,
                         width_px=pix.width,
                         height_px=pix.height,
+                        coordinate_width=page.rect.width,
+                        coordinate_height=page.rect.height,
+                        coordinate_unit=CoordinateUnit.PDF_POINT,
                         image_path=image_path.relative_to(document_dir),
                         text_path=text_path.relative_to(document_dir),
                         native_text_available=bool(spans),
@@ -123,6 +134,7 @@ class DocumentPreparationService:
             document_id=document_id,
             source_name=source.name,
             source_sha256=sha256,
+            source_path=preserved_source.relative_to(document_dir),
             kind=DocumentKind.PDF,
             page_count=len(pages),
             output_dir=document_dir,
@@ -135,6 +147,7 @@ class DocumentPreparationService:
         document_id: str,
         sha256: str,
         document_dir: Path,
+        preserved_source: Path,
         pages_dir: Path,
         text_dir: Path,
     ) -> PreparedDocument:
@@ -151,6 +164,9 @@ class DocumentPreparationService:
             page_number=1,
             width_px=width,
             height_px=height,
+            coordinate_width=width,
+            coordinate_height=height,
+            coordinate_unit=CoordinateUnit.PIXEL,
             image_path=image_path.relative_to(document_dir),
             text_path=text_path.relative_to(document_dir),
             native_text_available=False,
@@ -160,6 +176,7 @@ class DocumentPreparationService:
             document_id=document_id,
             source_name=source.name,
             source_sha256=sha256,
+            source_path=preserved_source.relative_to(document_dir),
             kind=DocumentKind.IMAGE,
             page_count=1,
             output_dir=document_dir,
