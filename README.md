@@ -1,12 +1,12 @@
 ﻿# SnG Consulter
 
 Servicio de preparación documental para Steel & Glass. Fase 1 cerrada;
-estado actual: **2A.1 — contrato de Discovery y ensamblado de evidencia**.
+estado actual: **2B.1 — Coverage Audit independiente**.
 
-## Discovery 2A.1
+## Discovery 2A.1 y 2A.2
 
-`discovery/` define contratos y orquestación por página; todavía no incluye un
-analizador real ni integración con proveedor de IA. `build_discovery_input()`
+`discovery/` define contratos y orquestación por página, con `OpenAIPageAnalyzer`
+como adaptador del SDK oficial a Responses API. `build_discovery_input()`
 lee un batch persistido y sus documentos mediante `storage.py`, el lector
 validado común con Review Harness. No modifica los archivos de Fase 1.
 
@@ -30,8 +30,123 @@ no se fusionan referencias iguales ni candidatos entre páginas.
 Los resultados se publican por archivo temporal y reemplazo en
 `runtime/discovery/<batch_id>/discovery.json`. Un fallo no publica resultados
 parciales ni modifica un resultado anterior. No se cambia el batch ni el preparado.
-Los tests usan analizadores fake. No hay UI/API de Discovery, Coverage Audit,
-reconciliación de identidad, OCR, extracción técnica ni modelo multimodal conectado.
+Los tests usan analizadores fake o el SDK oficial con transporte HTTP simulado;
+no hacen llamadas reales a OpenAI. Hay una vista de lectura diagnóstica para
+resultados existentes; no es una UI productiva ni un endpoint para ejecutar
+Discovery. No hay reconciliación de identidad, OCR ni extracción técnica.
+
+### Validación visual de Discovery
+
+Desde `/review/batches/<batch_id>`, si existe
+`runtime/discovery/<batch_id>/discovery.json`, aparecen enlaces por ocurrencia/página
+con candidatos. `/review/batches/<batch_id>/discovery/<occurrence>/<page_number>`
+muestra el overlay y la lista de candidate_id, referencia provisional si existe,
+relevancia y descripción. La vista ofrece volver al conjunto, abrir el WEBP
+preparado y abrir el overlay a tamaño completo.
+
+El endpoint de imagen termina en `/overlay` y devuelve un PNG generado en memoria,
+con las dimensiones originales del render. Reutiliza
+`normalized_region_to_render_bbox()`; dibuja LIKELY en verde y POSSIBLE en naranja,
+con etiquetas identificables. No modifica ni guarda copias de preparados, manifests
+o resultados. Solo muestra candidatos de la ocurrencia y página seleccionadas.
+
+Antes de mostrar resultados se valida el schema, la pertenencia al batch y todas
+las referencias de ocurrencia/documento/página. Las rutas quedan contenidas en
+las raíces de Discovery y Review. Un resultado ausente devuelve 404 con explicación;
+un contrato o referencia inválida devuelve 409. La página del conjunto indica
+si todavía no existe resultado. Esta herramienta no analiza ni llama a OpenAI.
+
+### OpenAIPageAnalyzer y ejecución manual
+
+Configuración: `OPENAI_API_KEY` es obligatoria y `SNG_DISCOVERY_MODEL` selecciona
+el modelo; por defecto `gpt-6.1-sol`. La clave solo se entrega al cliente SDK:
+no se incluye en prompts, resultados ni logs de la aplicación. Los errores
+públicos omiten cuerpos originales del SDK y las cadenas de validación del modelo.
+
+Cada página envía el WEBP preparado completo mediante una data URL base64, sin
+leer el original ni redimensionar el archivo. `detail="high"` es el valor por
+defecto para comprensión visual de alta fidelidad; el argumento interno
+`image_detail="original"` permite otro detalle cuando el modelo lo soporte.
+El servicio no cambia. El proveedor puede aplicar su propio preprocesamiento;
+en planos densos la legibilidad y el recall requieren validación manual.
+
+El prompt pide todas las observaciones razonables relacionadas con vidrio,
+incluidas inciertas (`POSSIBLE`), sin asumir que cualquier rectángulo sea vidrio.
+No pide cantidades, medidas, módulos, paneles, sistemas ni precios definitivos.
+Los nombres y metadatos de identidad no se envían. El texto nativo complementa
+la imagen en JSON compacto: `render_size` y pares `[text,[x0,y0,x1,y1]]` de píxeles
+visuales, redondeados a tres decimales solo en el payload; se omiten índices internos.
+Los RAW y los contratos de 2A.1 no cambian.
+
+Se usa `client.responses.parse(text_format=...)` con un sobre Pydantic
+`{"proposals": [...]}`. El SDK genera JSON Schema estricto y valida la salida;
+el adaptador devuelve `list[CandidateProposal]`. Regiones inválidas, refusals,
+respuestas incompletas o texto no estructurado fallan, sin reparar candidatos.
+No hay fallback a una lista vacía ni reconciliación de referencias.
+
+Los errores se distinguen como configuración, fallo de API y respuesta inválida.
+El cliente tiene timeout de 180 segundos y cero retries automáticos; no hay
+crops ni segundas pasadas. `store=False` evita almacenar la respuesta como recurso
+de Responses; no sustituye las políticas de retención del proveedor.
+`DiscoveryService` sigue publicando solo cuando todas las páginas terminan.
+
+Para ejecutar manualmente un batch existente desde la raíz del repositorio:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev]"
+$discoveryCredential = Read-Host "OPENAI_API_KEY" -AsSecureString
+$env:OPENAI_API_KEY = [System.Net.NetworkCredential]::new("", $discoveryCredential).Password
+$env:SNG_DISCOVERY_MODEL = "gpt-6.1-sol"
+python -m sng_consulter.discovery "BATCH_ID"
+```
+
+Reemplaza `BATCH_ID` por el identificador de `/review/batches/<batch_id>`.
+Este comando hace llamadas reales y envía las páginas y texto nativo preparado
+a OpenAI. Publica `runtime/discovery/<batch_id>/discovery.json`; una nueva ejecución
+reemplaza el resultado previo solo al completar. No es un endpoint productivo.
+El CLI devuelve 0 si completa y 1 ante los errores de configuración/API/contrato
+gestionados. Los manifests preparados malformados o incompletos se rechazan con
+`IncompatiblePreparedDocumentError`, sin accesos accidentales a campos ausentes.
+
+Referencia: [salida estructurada de Responses](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses),
+[imágenes y detalle](https://developers.openai.com/api/docs/guides/images-vision).
+La integración está probada sin red; acceso real al modelo, costo, latencia,
+recall y precisión espacial quedan pendientes de la prueba manual del batch.
+
+## Coverage Audit 2B.1
+
+`discovery/coverage/` realiza una segunda revisión multimodal exclusivamente de
+posibles omisiones. Lee `discovery.json` persistido; nunca ejecuta Discovery
+automáticamente. Valida batch, documentos, ocurrencias, páginas e IDs únicos antes
+de auditar todas las páginas válidas, incluso aquellas sin candidatos.
+
+Cada llamada recibe el WEBP completo, texto nativo visual y candidatos locales como
+`[candidate_id, reference_hint, [x0,y0,x1,y1], glass_relevance]`. Comparte configuración,
+cliente, base64, parser y errores seguros de Responses con Discovery; su prompt
+original permanece intacto. El prompt de Coverage pide solo objetos separados
+omitidos: una región imperfecta del mismo objeto cuenta como cubierta; tampoco
+se repiten vistas ni se mejoran bbox. Ante duda razonable conserva `POSSIBLE`.
+Esta decisión es multimodal, sin filtrado geométrico, reconciliación ni fusión.
+
+`CoverageAuditProposal` contiene referencia nullable, descripción, región normalizada,
+relevancia y motivo. `CoverageAuditPageResult` añade documento, ocurrencia y página.
+`CoverageAuditResult` contiene batch, `pages_audited` y omisiones con esos mismos
+datos e IDs propios `coverage-0001`, distintos de `DiscoveryCandidate`.
+No son estructuras definitivas.
+
+Con el entorno OpenAI ya configurado:
+
+```powershell
+python -m sng_consulter.discovery coverage "BATCH_ID"
+```
+
+Hace llamadas reales a Responses con salida estructurada estricta y cero retries.
+Publica `runtime/discovery/<batch_id>/coverage_audit.json` mediante temporal y
+reemplazo atómico solo tras éxito completo. Un fallo conserva el audit anterior;
+`discovery.json`, preparados y batch permanecen intactos. No hay crops ni UI nueva.
+Los tests simulan la frontera HTTP; cobertura real, falsos positivos, duplicados
+semánticos, costo y latencia requieren prueba manual antes de validar esta subfase.
 
 ## Preparación disponible
 

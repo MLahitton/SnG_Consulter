@@ -11,7 +11,11 @@ from uuid import uuid4
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
+from pydantic import ValidationError
+
+from sng_consulter.discovery.inputs import normalized_region_to_render_bbox
+from sng_consulter.discovery.models import DiscoveryCandidate, DiscoveryResult
 
 from sng_consulter.preparation import (
     DocumentPreparationService, deduplicate_text_spans, source_bbox_to_render_pixels,
@@ -27,6 +31,7 @@ router = APIRouter(prefix="/review", tags=["review"])
 UPLOAD_DIR = Path("runtime/review/uploads")
 PREPARED_DIR = Path("runtime/review/prepared")
 BATCH_DIR = Path("runtime/review/batches")
+DISCOVERY_DIR = Path("runtime/discovery")
 logger = logging.getLogger(__name__)
 
 
@@ -94,6 +99,8 @@ def _load_batch(batch_id: str) -> dict:
         return read_review_batch(BATCH_DIR, batch_id).model_dump(exclude_none=True)
     except FileNotFoundError as exc:
         raise HTTPException(404, "Conjunto no encontrado.") from exc
+    except ValueError as exc:
+        raise HTTPException(409, "El manifest del conjunto es inválido.") from exc
 
 
 @router.get("/batches/{batch_id}", response_class=HTMLResponse)
@@ -110,9 +117,130 @@ def review_batch(batch_id: str) -> HTMLResponse:
         else:
             rows.append(f'<li>{name}: Error ({entry["status_code"]}) — {escape(entry["error"])}</li>')
     total = len(batch["documents"])
+    discovery_section = "<p>No hay un resultado de Discovery guardado para este conjunto.</p>"
+    if (DISCOVERY_DIR / batch_id / "discovery.json").exists():
+        result, pages = _load_discovery(batch_id)
+        links = [f'<li><a href="/review/batches/{batch_id}/discovery/{occurrence}/{number}">'
+                 f'Revisar Discovery: ocurrencia {occurrence}, página {number}</a></li>'
+                 for occurrence, number in pages]
+        discovery_section = (f'<h2>Discovery — diagnóstico visual</h2><p>{len(result.candidates)} candidatos.</p>'
+                             f'<ul>{"".join(links)}</ul>')
     return _html(f'<h1>Conjunto de revisión {batch_id}</h1>'
                  f'<p>Preparados: {successful} / {total}. Fallidos: {total - successful}.</p>'
-                 f'<ul>{"".join(rows)}</ul><p><a href="/review">Subir más documentos</a></p>')
+                 f'<ul>{"".join(rows)}</ul>{discovery_section}<p><a href="/review">Subir más documentos</a></p>')
+
+
+def _load_discovery(batch_id: str) -> tuple[DiscoveryResult, dict[tuple[int, int], tuple[Path, PreparedPage]]]:
+    batch = _load_batch(batch_id)
+    try:
+        path = prepared_file(DISCOVERY_DIR, DISCOVERY_DIR / batch_id, Path("discovery.json"))
+    except FileNotFoundError as exc:
+        raise HTTPException(404, "Discovery no existe para este conjunto o su ruta no es válida.") from exc
+    try:
+        result = DiscoveryResult.model_validate_json(path.read_text(encoding="utf-8"))
+    except (ValidationError, UnicodeDecodeError) as exc:
+        raise HTTPException(409, "El resultado de Discovery es inválido.") from exc
+    if result.batch_id != batch_id:
+        raise HTTPException(409, "Discovery pertenece a otro conjunto.")
+    if len({candidate.candidate_id for candidate in result.candidates}) != len(result.candidates):
+        raise HTTPException(409, "Discovery contiene candidate_id duplicados.")
+    documents = {}
+    pages = {}
+    for candidate in result.candidates:
+        evidence = candidate.evidence
+        if not 0 <= evidence.occurrence < len(batch["documents"]):
+            raise HTTPException(409, "Discovery referencia una ocurrencia inexistente.")
+        entry = batch["documents"][evidence.occurrence]
+        if entry["status"] != "prepared" or entry["document_id"] != evidence.document_id:
+            raise HTTPException(409, "Discovery no corresponde al documento de la ocurrencia.")
+        if evidence.document_id not in documents:
+            documents[evidence.document_id] = _load(evidence.document_id)
+        directory, prepared = documents[evidence.document_id]
+        try:
+            page = _page(prepared, evidence.page_number)
+        except HTTPException as exc:
+            raise HTTPException(409, "Discovery referencia una página inexistente.") from exc
+        _safe_file(directory, page.image_path)
+        pages[(evidence.occurrence, evidence.page_number)] = (directory, page)
+    return result, pages
+
+
+def _discovery_page(batch_id: str, occurrence: int, page_number: int):
+    result, pages = _load_discovery(batch_id)
+    if (occurrence, page_number) not in pages:
+        raise HTTPException(404, "No hay candidatos de Discovery para esta ocurrencia/página.")
+    candidates = [candidate for candidate in result.candidates
+                  if candidate.evidence.occurrence == occurrence and candidate.evidence.page_number == page_number]
+    directory, page = pages[(occurrence, page_number)]
+    return directory, page, candidates
+
+
+def _candidate_label(candidate: DiscoveryCandidate) -> str:
+    parts = [candidate.candidate_id]
+    if candidate.reference_hint is not None:
+        parts.append(candidate.reference_hint)
+    parts.append(candidate.glass_relevance.value)
+    return " · ".join(parts)
+
+
+@router.get("/batches/{batch_id}/discovery/{occurrence}/{page_number}", response_class=HTMLResponse)
+def review_discovery_page(batch_id: str, occurrence: int, page_number: int) -> HTMLResponse:
+    _, page, candidates = _discovery_page(batch_id, occurrence, page_number)
+    base = f"/review/batches/{batch_id}/discovery/{occurrence}/{page_number}"
+    descriptions = "".join(f'<li><strong>{escape(_candidate_label(candidate))}</strong>'
+                           f'<p>{escape(candidate.description)}</p></li>' for candidate in candidates)
+    original_url = f"/review/{candidates[0].evidence.document_id}/pages/{page_number}/image"
+    return _html(f'''
+        <h1>Discovery — validación visual</h1>
+        <p>Ocurrencia {occurrence}, página {page_number}. Render: {page.width_px} × {page.height_px} px.</p>
+        <p><a href="/review/batches/{batch_id}">Volver al conjunto</a> |
+           <a href="{original_url}" target="_blank" rel="noopener">Ver WEBP preparado</a> |
+           <a href="{base}/overlay" target="_blank" rel="noopener">Ver overlay en tamaño completo</a></p>
+        <p>LIKELY: verde. POSSIBLE: naranja. Esta vista solo muestra observaciones guardadas.</p>
+        <img src="{base}/overlay" alt="Candidatos de Discovery"
+             style="max-width:100%;max-height:80vh;width:auto;height:auto;object-fit:contain">
+        <h2>Candidatos de esta ocurrencia/página</h2><ul>{descriptions}</ul>
+    ''')
+
+
+@router.get("/batches/{batch_id}/discovery/{occurrence}/{page_number}/overlay")
+def discovery_overlay(batch_id: str, occurrence: int, page_number: int) -> Response:
+    directory, page, candidates = _discovery_page(batch_id, occurrence, page_number)
+    with Image.open(_safe_file(directory, page.image_path)) as original:
+        image = original.convert("RGB")
+    try:
+        if image.size != (page.width_px, page.height_px):
+            raise HTTPException(409, "El WEBP no corresponde a las dimensiones del manifest.")
+        draw = ImageDraw.Draw(image)
+        font = ImageFont.load_default(size=14)
+        for candidate in candidates:
+            bbox = normalized_region_to_render_bbox(candidate.evidence.region, page.width_px, page.height_px)
+            color = "green" if candidate.glass_relevance.value == "LIKELY" else "darkorange"
+            draw.rectangle((bbox.x0, bbox.y0, bbox.x1, bbox.y1), outline=color, width=2)
+            label = _candidate_label(candidate)
+            lines, line = [], ""
+            for character in label:
+                if character == "\n":
+                    lines.append(line)
+                    line = ""
+                elif line and draw.textlength(line + character, font=font) > max(1, image.width - 4):
+                    lines.append(line)
+                    line = character
+                else:
+                    line += character
+            lines.append(line)
+            label = "\n".join(lines)
+            bounds = draw.multiline_textbbox((0, 0), label, font=font)
+            label_width, label_height = bounds[2] - bounds[0], bounds[3] - bounds[1]
+            x = min(bbox.x0, max(0, image.width - label_width - 4))
+            y = max(0, bbox.y0 - label_height - 6)
+            draw.rectangle((x, y, x + label_width + 4, y + label_height + 4), fill="white")
+            draw.multiline_text((x + 2, y + 2 - bounds[1]), label, fill=color, font=font)
+        with BytesIO() as buffer:
+            image.save(buffer, format="PNG")
+            return Response(buffer.getvalue(), media_type="image/png", headers={"Cache-Control": "no-store"})
+    finally:
+        image.close()
 
 
 def _occurrence_name(document_id: str, batch_id: str | None, occurrence: int | None) -> str | None:

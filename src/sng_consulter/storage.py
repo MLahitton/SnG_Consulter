@@ -65,17 +65,19 @@ def read_prepared_document(
         raise FileNotFoundError("Prepared document not found")
     directory = root / document_id
     manifest = prepared_file(root, directory, Path("manifest.json"))
-    data = json.loads(manifest.read_text(encoding="utf-8"))
-    if expected_sha256 is not None and data["source_sha256"] != expected_sha256:
-        raise ContentIdentityConflictError("Content identity conflict")
-    fields = {"coordinate_width", "coordinate_height", "coordinate_unit", "source_to_visible_matrix"}
-    if (data.get("preparation_contract_version") != PreparedDocument.model_fields["preparation_contract_version"].default
-            or any(not fields.issubset(page) for page in data["pages"])):
+    try:
+        data = json.loads(manifest.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        raise IncompatiblePreparedDocumentError("Malformed preparation manifest") from exc
+    if (not isinstance(data, dict)
+            or data.get("preparation_contract_version") != PreparedDocument.model_fields["preparation_contract_version"].default):
         raise IncompatiblePreparedDocumentError("Incomplete or incompatible preparation contract")
     try:
         document = PreparedDocument.model_validate(data)
     except ValidationError as exc:
         raise IncompatiblePreparedDocumentError("Invalid preparation contract") from exc
+    if expected_sha256 is not None and document.source_sha256 != expected_sha256:
+        raise ContentIdentityConflictError("Content identity conflict")
     if document.document_id != document_id or document.source_sha256[:16] != document_id:
         raise ContentIdentityConflictError("Prepared document identity mismatch")
     if (len(document.pages) != document.page_count
