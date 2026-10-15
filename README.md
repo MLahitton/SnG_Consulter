@@ -1,7 +1,7 @@
 ﻿# SnG Consulter
 
 Servicio de preparación documental para Steel & Glass. Fase 1 cerrada;
-estado actual: **3A.2 — OpenAI Multimodal Identity Resolver**.
+estado actual: **3B.1 — Independent Identity Audit**.
 
 ## Discovery 2A.1 y 2A.2
 
@@ -225,8 +225,8 @@ permanecer unresolved, sin descartarse ni duplicarse.
 
 Límites operativos: 80 candidatos y 120.000 bytes UTF-8 de metadata por solicitud;
 excederlos produce `IdentityContextBudgetExceeded` antes de la llamada, sin truncar.
-Timeout: 180 segundos; `store=False`; cero retries. No hay Identity Audit, second
-pass, chunking, extracción técnica ni endpoint productivo. La fidelidad visual,
+Timeout: 180 segundos; `store=False`; cero retries. No hay second resolver,
+chunking, extracción técnica ni endpoint productivo. La fidelidad visual,
 agrupación, costo y latencia requieren prueba manual real.
 
 ### Revisión visual diagnóstica de Identity
@@ -245,6 +245,35 @@ ocurrencia/documento/página/región. Rutas quedan contenidas en las raíces pre
 Un Identity desactualizado devuelve 409 con explicación; artefactos ausentes o
 rutas no válidas devuelven 404. No ejecuta OpenAI ni Identity Audit, ni modifica
 imágenes, manifests o resultados. Es una herramienta manual de lectura.
+
+### Independent Identity Audit 3B.1
+
+Identity Resolver propone una partición; **Identity Audit busca errores concretos
+en esa partición y no la modifica**. Consume exclusivamente `identity.json`
+persistido, valida su lineage contra CoveredDiscovery actual y reconstruye la
+evidencia mediante `build_identity_input()`. No ejecuta fases previas ni el resolver.
+
+```powershell
+$env:SNG_IDENTITY_AUDIT_MODEL = "gpt-6.1-sol"
+python -m sng_consulter.identity audit "BATCH_ID"
+```
+
+Requiere `OPENAI_API_KEY`. Su modelo es independiente de `SNG_IDENTITY_MODEL`.
+Usa Responses con salida estructurada estricta, timeout de 180 segundos,
+`store=False` y cero retries. Reutiliza los contact sheets en memoria de Identity;
+el payload describe grupos actuales y todos sus candidatos, sin paths ni nombres.
+El prompt independiente acepta `issues=[]` y exige evidencia concreta para
+`MERGE_ERROR`, `SPLIT_ERROR`, `SHOULD_BE_UNRESOLVED` o
+`UNRESOLVED_MAY_BE_RESOLVABLE`. No devuelve una partición corregida.
+
+El servicio valida referencias y membership, asigna `identity-audit-0001`, etc.,
+y publica `runtime/identity/<batch_id>/identity_audit.json` atómicamente solo tras
+éxito completo. Conserva `audited_identity_sha256` de los bytes exactos auditados.
+Un fallo conserva un audit previo; Identity y las fases previas permanecen intactos.
+Un consumidor posterior deberá comparar ese hash con Identity actual antes de
+usar el audit. Límite: 80 candidatos y 120.000 bytes de metadata UTF-8; excederlo
+falla sin truncar ni llamar al proveedor. No hay corrección automática, chunking
+ni `identity_final.json`. La calidad real del audit requiere revisión manual.
 
 ## Preparación disponible
 

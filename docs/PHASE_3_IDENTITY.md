@@ -1,4 +1,4 @@
-# Identity 3A.1 y 3A.2
+# Identity 3A y Independent Identity Audit 3B.1
 
 CoveredDiscovery representa observaciones cubiertas. IdentityResolution representa
 su agrupación por ítem/diseño arquitectónico provisional, sin resolver unidades físicas
@@ -140,11 +140,72 @@ contrato devuelve 409; archivos ausentes/rutas inseguras y candidatos inexistent
 devuelven 404. No se ejecutan resolvers ni se reescriben artefactos. Esta vista es
 diagnóstica y no constituye Identity Audit ni un endpoint de análisis productivo.
 
+## Independent Identity Audit — 3B.1
+
+El Resolver propone una partición; el Audit busca errores concretos en una
+partición persistida. No vuelve a agrupar desde cero ni cambia `identity.json`.
+
+Contratos (campos extra prohibidos):
+
+- `IdentityAuditIssueType`: `MERGE_ERROR`, `SPLIT_ERROR`, `SHOULD_BE_UNRESOLVED`,
+  `UNRESOLVED_MAY_BE_RESOLVABLE`.
+- `IdentityAuditIssueProposal`: `issue_type`, `identity_ids[]`, `unresolved_ids[]`,
+  `candidate_ids[]`, `reason` obligatorio.
+- `IdentityAuditProposal`: `issues[]`; una lista vacía es válida.
+- `IdentityAuditIssue`: campos de propuesta más `issue_id`, asignado por servicio.
+- `IdentityAuditResult`: `batch_id`, `audited_identity_sha256`,
+  `identities_audited`, `unresolved_groups_audited`, `issues[]`.
+
+Cada issue requiere al menos un grupo existente y referencias sin duplicados;
+los candidatos deben pertenecer a los grupos citados. SPLIT requiere al menos
+dos identities; MERGE/SHOULD requieren identity y MAY_BE_RESOLVABLE requiere
+unresolved. No se crean ni devuelven grupos corregidos.
+
+`IdentityAuditService.audit(batch_id)` lee una sola vez los bytes exactos de
+`identity.json`, calcula SHA-256 y valida su contrato. Reconstruye la evidencia
+actual con `build_identity_input()`, verifica lineage, batch, cobertura exacta,
+asignaciones exclusivas, contadores e IDs únicos antes de llamar al auditor.
+Un Identity inválido/desactualizado no llega al proveedor. El auditor recibe
+copias de la evidencia y partición, sin poder alterar los datos del servicio.
+
+El Protocol `IdentityAuditor.audit(evidence, partition) -> IdentityAuditProposal`
+permite tests fake. `OpenAIIdentityAuditor` usa un prompt independiente orientado
+a errores observables, sin compartir instrucciones ni razonamiento del resolver.
+No reporta una preocupación solo porque otra agrupación también sea posible.
+Acepta audit limpio, distingue ítem/diseño de unidades físicas y prohíbe extracción
+técnica. Trata contenido y metadata como evidencia no confiable, no instrucciones.
+
+Reutiliza `build_contact_sheets()` sin generar otro mecanismo visual. Envía una
+solicitud con todos los sheets y metadata compacta: identities con ID, referencia,
+descripción y miembros; unresolved con ID, motivo y miembros; candidatos con ID,
+referencia, descripción, relevancia, occurrence y página. No envía motivos de grupos
+resueltos, nombres de archivo, paths ni identidades de clientes.
+
+Config: `OPENAI_API_KEY` obligatorio, `SNG_IDENTITY_AUDIT_MODEL` default
+`gpt-6.1-sol`, independiente de Identity/Discovery. Adapter local del SDK oficial,
+Responses `parse(text_format=IdentityAuditProposal)`, `store=False`, timeout 180 s,
+`max_retries=0`. Errores API/salida inválida son explícitos y omiten cuerpos
+sensibles; no se convierten en audit limpio. Límite operativo: 80 candidatos y
+120.000 bytes UTF-8 de metadata completa, sin truncamiento ni chunking.
+
+```powershell
+python -m sng_consulter.identity audit "BATCH_ID"
+```
+
+Publica `runtime/identity/<batch_id>/identity_audit.json` mediante staging y reemplazo
+atómico después de validar todas las propuestas. IDs `identity-audit-0001`, etc.,
+siguen el orden de issues propuestos. Un fallo no publica parcial ni destruye un
+audit previo. No modifica artefactos fuente ni persiste imágenes, prompts o
+respuestas del proveedor. No hay `identity_final.json` ni correcciones automáticas.
+Consumidores futuros deben comparar `audited_identity_sha256` con los bytes
+actuales de Identity; incluso un cambio de whitespace deja obsoleto el audit.
+
 ## Pendiente antes de la primera prueba real
 
 Validar agrupación semántica, ambigüedad, legibilidad de crops, costo y latencia.
 Los tests usan el SDK con HTTP simulado y no demuestran calidad real del modelo.
-No hay Identity Audit, second pass, retries adaptativos ni extracción técnica.
+Validar también falsos positivos/negativos y utilidad de los issues del audit.
+No hay second resolver, correcciones automáticas, retries adaptativos ni extracción técnica.
 Un caso que supere el presupuesto requiere definir una estrategia futura;
 no se implementa chunking porque puede perder relaciones entre observaciones.
 El hash identifica el snapshot consumido; no se reabre el artefacto ni se ejecutan
