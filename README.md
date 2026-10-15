@@ -1,7 +1,7 @@
 ﻿# SnG Consulter
 
 Servicio de preparación documental para Steel & Glass. Fase 1 cerrada;
-estado actual: **2B.1 — Coverage Audit independiente**.
+estado actual: **2C — Covered Discovery Result**.
 
 ## Discovery 2A.1 y 2A.2
 
@@ -131,7 +131,7 @@ Esta decisión es multimodal, sin filtrado geométrico, reconciliación ni fusi�
 
 `CoverageAuditProposal` contiene referencia nullable, descripción, región normalizada,
 relevancia y motivo. `CoverageAuditPageResult` añade documento, ocurrencia y página.
-`CoverageAuditResult` contiene batch, `pages_audited` y omisiones con esos mismos
+`CoverageAuditResult` contiene batch, `audited_discovery_sha256`, `pages_audited` y omisiones con esos mismos
 datos e IDs propios `coverage-0001`, distintos de `DiscoveryCandidate`.
 No son estructuras definitivas.
 
@@ -147,6 +147,36 @@ reemplazo atómico solo tras éxito completo. Un fallo conserva el audit anterio
 `discovery.json`, preparados y batch permanecen intactos. No hay crops ni UI nueva.
 Los tests simulan la frontera HTTP; cobertura real, falsos positivos, duplicados
 semánticos, costo y latencia requieren prueba manual antes de validar esta subfase.
+
+## Consolidación 2C — Covered Discovery Result
+
+```powershell
+python -m sng_consulter.discovery consolidate "BATCH_ID"
+```
+
+Lee exclusivamente `runtime/discovery/<batch_id>/discovery.json` y
+`coverage_audit.json`, ambos obligatorios, con validación de contrato, batch y
+conteo de páginas. No lee preparados ni llama OpenAI; no necesita API key.
+Concatena candidatos en orden persistido: Discovery primero, Coverage después.
+No fusiona, deduplica ni resuelve identidad, aunque las referencias coincidan.
+
+`CoveredCandidate` contiene `covered_candidate_id` (`covered-0001`, etc.),
+`origin` (`DISCOVERY`/`COVERAGE_AUDIT`), `source_candidate_id`, referencia nullable,
+descripción, relevancia y evidencia. Discovery conserva su evidencia completa;
+Coverage conserva documento, ocurrencia, página, región y motivo en `evidence`,
+sin inventar un tipo de evidencia que su contrato no contiene.
+`CoveredDiscoveryResult` contiene batch, candidatos y contadores `discovery_count`,
+`coverage_added_count` y `total_candidates`.
+
+Publica `covered_discovery.json` mediante staging y reemplazo atómico; los mismos
+inputs producen los mismos IDs y bytes. Fallos controlados limpian staging y
+conservan un resultado previo. Los dos JSON fuente permanecen intactos.
+La consolidación no certifica recall ni elimina posibles duplicados semánticos.
+Coverage conserva el SHA-256 de los bytes exactos de `discovery.json` que leyó
+para auditar. Consolidación exige que coincida con los bytes actuales, incluso si
+solo cambió el formato del JSON. Si no coincide, rechaza el audit desactualizado
+y exige ejecutarlo nuevamente, sin hacerlo automáticamente. Audits anteriores sin
+hash son incompatibles; no se infieren hashes ni se migran resultados.
 
 ## Preparación disponible
 
@@ -241,10 +271,10 @@ anteriores permanecen en `.previous-*` para recuperación manual.
 Abre `http://127.0.0.1:8000/review` para seleccionar uno o varios documentos o
 fotos. `POST /review/upload` usa el mismo servicio de preparación.
 
-Una carga individual conserva la redirección directa al documento. Si reutiliza
-contenido ya preparado con otro nombre, crea un conjunto con esa ocurrencia
-para conservar el nombre sin sobrescribir metadata. Una
-multisubida crea un conjunto persistente en `/review/batches/<batch_id>`.
+Toda subida crea un conjunto persistente y redirige a `/review/batches/<batch_id>`,
+con una ocurrencia por archivo, tanto para uno como para varios archivos.
+Un archivo único inválido también crea un conjunto con estado `error`; los errores
+controlados 400/415 se muestran allí y los errores inesperados se propagan.
 Cada ocurrencia conserva su nombre y resultado; archivos de contenido idéntico
 referencian el mismo documento preparado, sin reprocesarlo ni reemplazar su
 metadata. La pantalla del conjunto muestra también los errores de archivos

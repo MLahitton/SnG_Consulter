@@ -32,5 +32,6 @@ class CoverageMissingCandidate(CoverageAuditProposal):
 class CoverageAuditResult(BaseModel):
     model_config = ConfigDict(extra="forbid", revalidate_instances="always")
     batch_id: BatchId
+    audited_discovery_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     pages_audited: int = Field(ge=0)
     missing_candidates: list[CoverageMissingCandidate]

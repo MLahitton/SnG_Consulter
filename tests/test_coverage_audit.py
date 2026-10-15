@@ -1,5 +1,6 @@
 import base64
 import json
+from hashlib import sha256
 
 import pytest
 from pydantic import ValidationError
@@ -13,6 +14,7 @@ from sng_consulter.discovery.coverage.openai_analyzer import OpenAICoverageAudit
 from sng_consulter.discovery.coverage.service import InvalidCoverageInputError
 from sng_consulter.discovery.openai_analyzer import OpenAIAnalyzerAPIError
 from sng_consulter.discovery.__main__ import main
+from sng_consulter.discovery.consolidation import CoveredDiscoveryService, InvalidConsolidationInputError
 
 
 def omission(**changes):
@@ -49,6 +51,7 @@ def test_all_pages_local_candidates_omission_provenance_and_immutable_inputs(sav
 
     result = CoverageAuditService(Auditor(), root).audit(evidence)
     assert result.pages_audited == len(evidence.pages) == 4
+    assert result.audited_discovery_sha256 == sha256(before[0]).hexdigest()
     assert [p for p, _ in calls] == evidence.pages
     for p, candidates in calls:
         assert candidates == [c for c in discovery.candidates if
@@ -144,6 +147,39 @@ def test_unsafe_batch_rejected(saved):
     evidence.batch_id = "../escape"
     with pytest.raises(ValidationError):
         CoverageAuditService(None, root).audit(evidence)
+
+
+def test_reaudit_restores_consolidation_and_hash_uses_initial_bytes(saved):
+    evidence, root, source, _ = saved
+
+    class Auditor:
+        def audit(self, page, candidates): return []
+
+    service = CoverageAuditService(Auditor(), root)
+    result = service.audit(evidence)
+    assert result.audited_discovery_sha256 == sha256(source.read_bytes()).hexdigest()
+    assert CoveredDiscoveryService(root).consolidate(evidence.batch_id).coverage_added_count == 0
+    source.write_bytes(source.read_bytes() + b"\n")
+    before = source.read_bytes(), (source.parent / "coverage_audit.json").read_bytes()
+    with pytest.raises(InvalidConsolidationInputError, match="outdated"):
+        CoveredDiscoveryService(root).consolidate(evidence.batch_id)
+    assert (source.read_bytes(), (source.parent / "coverage_audit.json").read_bytes()) == before
+    updated = service.audit(evidence)
+    assert updated.audited_discovery_sha256 != result.audited_discovery_sha256
+    assert CoveredDiscoveryService(root).consolidate(evidence.batch_id).batch_id == evidence.batch_id
+
+    original = source.read_bytes()
+
+    class ChangingAuditor:
+        def audit(self, page, candidates):
+            source.write_bytes(source.read_bytes() + b" ")
+            return []
+
+    snapshot_result = CoverageAuditService(ChangingAuditor(), root).audit(evidence)
+    assert snapshot_result.audited_discovery_sha256 == sha256(original).hexdigest()
+    assert snapshot_result.audited_discovery_sha256 != sha256(source.read_bytes()).hexdigest()
+    with pytest.raises(InvalidConsolidationInputError, match="outdated"):
+        CoveredDiscoveryService(root).consolidate(evidence.batch_id)
 
 
 def test_manual_coverage_command_uses_persisted_discovery_only(sdk, monkeypatch, saved, tmp_path, capsys):

@@ -28,6 +28,72 @@ def pdf_bytes() -> bytes:
         return pdf.tobytes()
 
 
+def prepared_url(response):
+    batch_url = response.headers.get("location", str(response.url))
+    assert "/review/batches/" in batch_url
+    batch_id = batch_url.rsplit("/", 1)[1]
+    batch = json.loads((routes.BATCH_DIR / batch_id / "manifest.json").read_text(encoding="utf-8"))
+    assert len(batch["documents"]) == 1
+    assert batch["documents"][0]["status"] == "prepared"
+    return f'/review/{batch["documents"][0]["document_id"]}'
+
+
+@pytest.mark.parametrize("kind", ["pdf", "png"])
+def test_single_upload_always_creates_batch_with_occurrence_zero_and_discovery_input(client, kind):
+    from sng_consulter.discovery.inputs import build_discovery_input
+
+    content = pdf_bytes()
+    if kind == "png":
+        buffer = BytesIO()
+        Image.new("RGB", (20, 30), "white").save(buffer, format="PNG")
+        content = buffer.getvalue()
+    name = f"original.{kind}"
+    response = client.post("/review/upload", files={"document": (name, content)}, follow_redirects=False)
+    assert response.status_code == 303
+    batch_url = response.headers["location"]
+    assert batch_url.startswith("/review/batches/")
+    batch_id = batch_url.rsplit("/", 1)[1]
+    batch = json.loads((routes.BATCH_DIR / batch_id / "manifest.json").read_text())
+    url = prepared_url(response)
+    assert batch["documents"] == [dict(document_id=url.rsplit("/", 1)[1], original_name=name, status="prepared")]
+    page = client.get(batch_url)
+    assert "Preparados: 1 / 1. Fallidos: 0." in page.text
+    context = f"?batch_id={batch_id}&occurrence=0"
+    assert client.get(url + context).status_code == 200
+    download = client.get(url + "/source" + context)
+    assert download.content == content
+    assert f'filename="{name}"' in download.headers["content-disposition"]
+    evidence = build_discovery_input(batch_id, routes.BATCH_DIR, routes.PREPARED_DIR)
+    assert evidence.batch_id == batch_id
+    assert len(evidence.pages) == (2 if kind == "pdf" else 1)
+    assert all(p.occurrence == 0 and p.document_id == batch["documents"][0]["document_id"] for p in evidence.pages)
+
+
+def test_single_invalid_upload_creates_error_batch_and_closes_stream_once(client):
+    from fastapi import UploadFile
+
+    class Stream(BytesIO):
+        closes = 0
+
+        def close(self):
+            self.closes += 1
+            super().close()
+
+    stream = Stream(b"invalid")
+    response = routes.upload_documents([UploadFile(stream, filename="bad.pdf")])
+    assert response.status_code == 303
+    assert stream.closed and stream.closes == 1
+    url = response.headers["location"]
+    batch_id = url.rsplit("/", 1)[1]
+    batch = json.loads((routes.BATCH_DIR / batch_id / "manifest.json").read_text())
+    assert len(batch["documents"]) == 1
+    assert batch["documents"][0]["original_name"] == "bad.pdf"
+    assert batch["documents"][0]["document_id"] is None
+    assert batch["documents"][0]["status"] == "error"
+    assert batch["documents"][0]["status_code"] == 400
+    assert "Preparados: 0 / 1. Fallidos: 1." in client.get(url).text
+
+
 def test_home_contains_upload_form(client):
     response = client.get("/review")
     assert response.status_code == 200
@@ -44,7 +110,7 @@ def test_pdf_review_flow(client, monkeypatch):
     response = client.post("/review/upload", files={"document": ("sample.pdf", content)},
                            follow_redirects=False)
     assert response.status_code == 303
-    url = response.headers["location"]
+    url = prepared_url(response)
     directory = routes.PREPARED_DIR / url.rsplit("/", 1)[1]
     manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["page_count"] == 2
@@ -90,12 +156,16 @@ def test_pdf_review_flow(client, monkeypatch):
 
 @pytest.mark.parametrize("filename", ["file.txt", "file.tiff", "file.tif"])
 def test_unsupported_format(client, filename):
-    assert client.post("/review/upload", files={"document": (filename, b"data")}).status_code == 415
+    response = client.post("/review/upload", files={"document": (filename, b"data")})
+    assert response.status_code == 200
+    assert "Error (415)" in response.text
+    assert "Preparados: 0 / 1. Fallidos: 1." in response.text
 
 
 def test_invalid_pdf_cleans_upload(client):
     response = client.post("/review/upload", files={"document": ("bad.pdf", b"invalid")})
-    assert response.status_code == 400
+    assert response.status_code == 200
+    assert "Preparados: 0 / 1. Fallidos: 1." in response.text
     assert list(routes.UPLOAD_DIR.iterdir()) == []
 
 
@@ -144,8 +214,9 @@ def test_upload_validation_before_preparation(client, monkeypatch, caplog, conte
 
     monkeypatch.setattr(routes.DocumentPreparationService, "prepare", must_not_prepare)
     response = client.post("/review/upload", files={"document": ("invalid.pdf", content)})
-    assert response.status_code == 400
-    assert detail in response.json()["detail"]
+    assert response.status_code == 200
+    assert "Preparados: 0 / 1. Fallidos: 1." in response.text
+    assert detail in response.text
     assert "filename='invalid.pdf'" in caplog.text
     assert f"size={len(content)}" in caplog.text
     assert "prefix_hex=" in caplog.text
@@ -154,8 +225,9 @@ def test_upload_validation_before_preparation(client, monkeypatch, caplog, conte
 
 def test_pdf_header_does_not_replace_pymupdf_validation(client, caplog):
     response = client.post("/review/upload", files={"document": ("broken.pdf", b"%PDF-1.7\nbroken")})
-    assert response.status_code == 400
-    assert "FileDataError" in response.json()["detail"]
+    assert response.status_code == 200
+    assert "Preparados: 0 / 1. Fallidos: 1." in response.text
+    assert "FileDataError" in response.text
     assert "FileDataError" in caplog.text
     assert list(routes.UPLOAD_DIR.iterdir()) == []
 
@@ -169,6 +241,7 @@ def test_image_upload_without_invented_text(client, suffix, format):
     Image.new("RGB", (20, 10), "white").save(buffer, format=format)
     response = client.post("/review/upload", files={"document": (f"image.{suffix}", buffer.getvalue())})
     assert response.status_code == 200
+    response = client.get(prepared_url(response))
     assert "Tipo de documento: IMAGE" in response.text
     assert "Página 1 / 1" in response.text
     assert "20 × 10 px" in response.text
@@ -186,7 +259,7 @@ def test_untrusted_name_and_manifest_paths(client, tmp_path):
     response = client.post("/review/upload", files={"document": ("../../<script>.pdf", pdf_bytes())},
                            follow_redirects=False)
     assert response.status_code == 303
-    url = response.headers["location"]
+    url = prepared_url(response)
     review = client.get(url)
     assert "<script>" not in review.text
     assert "&lt;script&gt;" in review.text
@@ -205,7 +278,7 @@ def test_untrusted_name_and_manifest_paths(client, tmp_path):
 def test_old_manifest_requests_new_upload_without_guessing_coordinates(client):
     response = client.post("/review/upload", files={"document": ("sample.pdf", pdf_bytes())},
                            follow_redirects=False)
-    url = response.headers["location"]
+    url = prepared_url(response)
     manifest_path = routes.PREPARED_DIR / url.rsplit("/", 1)[1] / "manifest.json"
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
     for page in data["pages"]:
@@ -222,7 +295,7 @@ def test_old_manifest_requests_new_upload_without_guessing_coordinates(client):
 def test_bbox_overlay_uses_converter_without_changing_prepared_files(client, monkeypatch):
     response = client.post("/review/upload", files={"document": ("sample.pdf", pdf_bytes())},
                            follow_redirects=False)
-    url = response.headers["location"]
+    url = prepared_url(response)
     directory = routes.PREPARED_DIR / url.rsplit("/", 1)[1]
     before = {path.relative_to(directory): path.read_bytes() for path in directory.rglob("*") if path.is_file()}
     manifest = json.loads(before[Path("manifest.json")])
@@ -253,7 +326,7 @@ def test_bbox_overlay_uses_converter_without_changing_prepared_files(client, mon
 def test_bbox_overlay_ignores_outside_and_invalid_rectangles(client, caplog):
     response = client.post("/review/upload", files={"document": ("sample.pdf", pdf_bytes())},
                            follow_redirects=False)
-    url = response.headers["location"]
+    url = prepared_url(response)
     directory = routes.PREPARED_DIR / url.rsplit("/", 1)[1]
     text_path = directory / "text/0001.json"
     spans = json.loads(text_path.read_text(encoding="utf-8"))
@@ -271,7 +344,7 @@ def test_bbox_overlay_ignores_outside_and_invalid_rectangles(client, caplog):
 def test_bbox_overlay_missing_page_or_document_and_empty_page(client):
     response = client.post("/review/upload", files={"document": ("sample.pdf", pdf_bytes())},
                            follow_redirects=False)
-    url = response.headers["location"]
+    url = prepared_url(response)
     assert client.get(url + "/page/3/bbox-overlay").status_code == 404
     assert client.get("/review/0000000000000000/page/1/bbox-overlay").status_code == 404
     assert client.get("/review/invalid/page/1/bbox-overlay").status_code == 404
@@ -291,7 +364,7 @@ def test_review_normalized_view_keeps_raw_pdf_spans_and_files(client, monkeypatc
         content = pdf.tobytes()
     response = client.post("/review/upload", files={"document": ("duplicate.pdf", content)},
                            follow_redirects=False)
-    url = response.headers["location"]
+    url = prepared_url(response)
     directory = routes.PREPARED_DIR / url.rsplit("/", 1)[1]
     before = {path.relative_to(directory): path.read_bytes() for path in directory.rglob("*") if path.is_file()}
     manifest = json.loads(before[Path("manifest.json")])
@@ -449,7 +522,7 @@ def test_download_name_is_safe_basename(client, name, expected):
     assert routes._download_name(name) == expected
     response = client.post("/review/upload", files={"document": ("original.pdf", pdf_bytes())},
                            follow_redirects=False)
-    url = response.headers["location"]
+    url = prepared_url(response)
     manifest = routes.PREPARED_DIR / url.rsplit("/", 1)[1] / "manifest.json"
     data = json.loads(manifest.read_text(encoding="utf-8"))
     data["source_name"] = name
@@ -485,7 +558,7 @@ def test_upload_handler_closes_each_stream_once_on_success_and_validation_error(
 def test_single_reupload_with_new_name_keeps_canonical_metadata(client, monkeypatch):
     content = pdf_bytes()
     first = client.post("/review/upload", files={"document": ("first.pdf", content)}, follow_redirects=False)
-    document_id = first.headers["location"].rsplit("/", 1)[1]
+    document_id = prepared_url(first).rsplit("/", 1)[1]
     manifest = routes.PREPARED_DIR / document_id / "manifest.json"
     before = manifest.read_bytes()
 
@@ -512,7 +585,7 @@ def test_legacy_rotated_manifest_is_rejected_then_regenerated_atomically(client,
             page.set_rotation(rotation)
         content = pdf.tobytes()
     response = client.post("/review/upload", files={"document": ("rotated.pdf", content)}, follow_redirects=False)
-    url = response.headers["location"]
+    url = prepared_url(response)
     directory = routes.PREPARED_DIR / url.rsplit("/", 1)[1]
     manifest_path = directory / "manifest.json"
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -533,7 +606,7 @@ def test_legacy_rotated_manifest_is_rejected_then_regenerated_atomically(client,
     monkeypatch.setattr(routes.DocumentPreparationService, "prepare", track)
     again = client.post("/review/upload", files={"document": ("rotated.pdf", content)}, follow_redirects=False)
     assert again.status_code == 303
-    assert again.headers["location"] == url
+    assert prepared_url(again) == url
     assert len(calls) == 1
     current = json.loads(manifest_path.read_text(encoding="utf-8"))
     with fitz.open(stream=content, filetype="pdf") as pdf:
@@ -547,7 +620,7 @@ def test_legacy_rotated_manifest_is_rejected_then_regenerated_atomically(client,
 def test_failed_legacy_regeneration_keeps_prior_manifest_and_files(client, monkeypatch):
     content = pdf_bytes()
     response = client.post("/review/upload", files={"document": ("sample.pdf", content)}, follow_redirects=False)
-    url = response.headers["location"]
+    url = prepared_url(response)
     directory = routes.PREPARED_DIR / url.rsplit("/", 1)[1]
     manifest_path = directory / "manifest.json"
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -560,7 +633,8 @@ def test_failed_legacy_regeneration_keeps_prior_manifest_and_files(client, monke
 
     monkeypatch.setattr(routes.DocumentPreparationService, "_prepare_pdf", fail)
     failed = client.post("/review/upload", files={"document": ("sample.pdf", content)})
-    assert failed.status_code == 400
+    assert failed.status_code == 200
+    assert "Preparados: 0 / 1. Fallidos: 1." in failed.text
     assert {path.relative_to(directory): path.read_bytes() for path in directory.rglob("*") if path.is_file()} == before
     assert list(routes.PREPARED_DIR.glob(".staging-*")) == []
     assert list(routes.UPLOAD_DIR.iterdir()) == []
@@ -574,7 +648,7 @@ def test_image_without_current_contract_version_is_regenerated_for_exif(client, 
         image.save(buffer, format="JPEG", exif=exif)
     content = buffer.getvalue()
     response = client.post("/review/upload", files={"document": ("photo.jpg", content)}, follow_redirects=False)
-    url = response.headers["location"]
+    url = prepared_url(response)
     directory = routes.PREPARED_DIR / url.rsplit("/", 1)[1]
     manifest_path = directory / "manifest.json"
     data = json.loads(manifest_path.read_text(encoding="utf-8"))

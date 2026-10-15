@@ -73,14 +73,12 @@ def upload_documents(document: list[UploadFile] = File(...)) -> Response:
             try:
                 prepared = _prepare_upload(upload)
             except HTTPException as exc:
-                if len(document) == 1 or exc.status_code not in {400, 415}:
+                if exc.status_code not in {400, 415}:
                     raise
                 entry.update(error=str(exc.detail), status_code=exc.status_code)
             else:
                 entry.update(document_id=prepared.document_id, status="prepared")
             entries.append(entry)
-        if len(document) == 1 and prepared.source_name == entries[0]["original_name"]:
-            return RedirectResponse(f"/review/{prepared.document_id}", status_code=303)
         directory = BATCH_DIR / batch_id
         directory.mkdir(parents=True)
         (directory / "manifest.json").write_text(

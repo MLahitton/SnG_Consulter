@@ -68,6 +68,8 @@ Antes de dar por cerrado un caso, cargarlo en `/review` y revisar cada página:
 
 Seleccionar PDF e imágenes en un solo envío y comprobar:
 
+- Toda subida, incluso de un único archivo, crea un batch y redirige a su pantalla.
+  Un único inválido conserva una ocurrencia `error`: Preparados: 0 / 1. Fallidos: 1.
 - `/review/batches/<batch_id>` conserva el conjunto y el resultado de cada ocurrencia.
 - `runtime/review/batches/<batch_id>/manifest.json` referencia documentos
   independientes en `runtime/review/prepared/<document_id>/`.

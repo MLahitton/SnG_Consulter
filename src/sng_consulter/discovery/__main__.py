@@ -1,4 +1,4 @@
-"""Explicit manual entry point; sends prepared pages to the configured OpenAI model."""
+"""Manual analysis commands and offline consolidation of persisted results."""
 
 import argparse
 import sys
@@ -13,25 +13,34 @@ from .openai_analyzer import (
 from .service import DiscoveryService
 from .coverage.service import CoverageAuditService, InvalidCoverageInputError
 from .coverage.openai_analyzer import OpenAICoverageAuditor, InvalidCoverageResponseError
+from .consolidation import CoveredDiscoveryService, InvalidConsolidationInputError
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run real OpenAI Discovery on an existing ReviewBatch")
-    parser.add_argument("command_or_batch", help="Batch ID, or coverage followed by Batch ID")
+    parser = argparse.ArgumentParser(description="Discovery, Coverage Audit, or offline consolidation")
+    parser.add_argument("command_or_batch", help="Batch ID, or coverage/consolidate followed by Batch ID")
     parser.add_argument("batch_id", nargs="?")
     args = parser.parse_args(argv)
     coverage = args.command_or_batch == "coverage"
-    if (coverage and args.batch_id is None) or (not coverage and args.batch_id is not None):
-        parser.error("Use BATCH_ID or coverage BATCH_ID")
-    batch_id = args.batch_id if coverage else args.command_or_batch
+    consolidate = args.command_or_batch == "consolidate"
+    subcommand = coverage or consolidate
+    if (subcommand and args.batch_id is None) or (not subcommand and args.batch_id is not None):
+        parser.error("Use BATCH_ID, coverage BATCH_ID, or consolidate BATCH_ID")
+    batch_id = args.batch_id if subcommand else args.command_or_batch
     analyzer = None
     try:
+        if consolidate:
+            result = CoveredDiscoveryService().consolidate(batch_id)
+            print(f"Consolidation completed: {result.discovery_count} Discovery + "
+                  f"{result.coverage_added_count} Coverage = {result.total_candidates} candidates. "
+                  f"Result: runtime/discovery/{result.batch_id}/covered_discovery.json")
+            return 0
         evidence = build_discovery_input(batch_id)
         analyzer = OpenAICoverageAuditor() if coverage else OpenAIPageAnalyzer()
         result = (CoverageAuditService(analyzer).audit(evidence) if coverage
                   else DiscoveryService(analyzer).discover(evidence))
     except (OpenAIAnalyzerConfigurationError, OpenAIAnalyzerAPIError, InvalidDiscoveryResponseError,
-            InvalidCoverageInputError, InvalidCoverageResponseError,
+            InvalidCoverageInputError, InvalidCoverageResponseError, InvalidConsolidationInputError,
             IncompatiblePreparedDocumentError, ContentIdentityConflictError, FileNotFoundError) as exc:
         print(f"{type(exc).__name__}: {exc}", file=sys.stderr)
         return 1

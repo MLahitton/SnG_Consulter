@@ -1,5 +1,6 @@
 """Audit each prepared page against its saved Discovery, then publish atomically."""
 
+from hashlib import sha256
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Protocol
@@ -31,8 +32,10 @@ class CoverageAuditService:
         root = self.output_root.resolve()
         directory = (root / evidence.batch_id).resolve()
         source = prepared_file(root, directory, Path("discovery.json"))
+        discovery_bytes = source.read_bytes()
+        audited_discovery_sha256 = sha256(discovery_bytes).hexdigest()
         try:
-            discovery = DiscoveryResult.model_validate_json(source.read_text(encoding="utf-8"))
+            discovery = DiscoveryResult.model_validate_json(discovery_bytes)
         except (ValidationError, UnicodeDecodeError):
             raise InvalidCoverageInputError("Invalid persisted Discovery contract") from None
         keys = [(p.document_id, p.occurrence, p.page_number) for p in evidence.pages]
@@ -59,7 +62,8 @@ class CoverageAuditService:
                     **proposal.model_dump(), missing_candidate_id=f"coverage-{len(missing) + 1:04d}",
                     document_id=page.document_id, occurrence=page.occurrence, page_number=page.page_number,
                 ))
-        result = CoverageAuditResult(batch_id=evidence.batch_id, pages_audited=len(keys), missing_candidates=missing)
+        result = CoverageAuditResult(batch_id=evidence.batch_id,
+            audited_discovery_sha256=audited_discovery_sha256, pages_audited=len(keys), missing_candidates=missing)
         # No output is published until every page and proposal has validated.
         target = directory / "coverage_audit.json"
         if not target.resolve().is_relative_to(directory):
