@@ -1,4 +1,4 @@
-# Identity 3A y Independent Identity Audit 3B.1
+# Identity 3A, Independent Identity Audit 3B e Identity Gate 3C
 
 CoveredDiscovery representa observaciones cubiertas. IdentityResolution representa
 su agrupación por ítem/diseño arquitectónico provisional, sin resolver unidades físicas
@@ -157,9 +157,11 @@ Contratos (campos extra prohibidos):
   `identities_audited`, `unresolved_groups_audited`, `issues[]`.
 
 Cada issue requiere al menos un grupo existente y referencias sin duplicados;
-los candidatos deben pertenecer a los grupos citados. SPLIT requiere al menos
-dos identities; MERGE/SHOULD requieren identity y MAY_BE_RESOLVABLE requiere
-unresolved. No se crean ni devuelven grupos corregidos.
+los candidatos deben pertenecer a los grupos citados. MERGE/SHOULD requieren
+al menos una identity y ningún unresolved; SPLIT requiere al menos dos identities
+y ningún unresolved. MAY_BE_RESOLVABLE requiere al menos un unresolved y ninguna
+identity. El contrato rechaza combinaciones mixtas, sin modificar el prompt del
+auditor. No se crean ni devuelven grupos corregidos.
 
 `IdentityAuditService.audit(batch_id)` lee una sola vez los bytes exactos de
 `identity.json`, calcula SHA-256 y valida su contrato. Reconstruye la evidencia
@@ -197,14 +199,63 @@ atómico después de validar todas las propuestas. IDs `identity-audit-0001`, et
 siguen el orden de issues propuestos. Un fallo no publica parcial ni destruye un
 audit previo. No modifica artefactos fuente ni persiste imágenes, prompts o
 respuestas del proveedor. No hay `identity_final.json` ni correcciones automáticas.
-Consumidores futuros deben comparar `audited_identity_sha256` con los bytes
-actuales de Identity; incluso un cambio de whitespace deja obsoleto el audit.
+Identity Gate compara `audited_identity_sha256` con los bytes actuales de Identity;
+incluso un cambio de whitespace deja obsoleto el audit.
 
-## Pendiente antes de la primera prueba real
+## Identity Gate — 3C
 
-Validar agrupación semántica, ambigüedad, legibilidad de crops, costo y latencia.
-Los tests usan el SDK con HTTP simulado y no demuestran calidad real del modelo.
-Validar también falsos positivos/negativos y utilidad de los issues del audit.
+Resolver propone una partición; Audit busca errores concretos; Gate decide
+determinísticamente si esa partición puede avanzar. No inicia Technical Extraction.
+
+`IdentityGateResult` (Pydantic estricto, campos extra prohibidos):
+
+- `batch_id`.
+- `source_identity_sha256`: hash de bytes exactos de `identity.json`.
+- `source_identity_audit_sha256`: hash de bytes exactos de `identity_audit.json`.
+- `status`: `READY_FOR_EXTRACTION` o `BLOCKED_BY_IDENTITY_ISSUES`.
+- `issue_count`.
+- `blocking_issue_ids[]`.
+
+`IdentityGateService.gate(batch_id)` lee solo esos dos JSON, valida sus contratos,
+pertenencia al batch y lineage Audit → Identity. Reutiliza la validación estructural
+de partición compartida con Audit: IDs de grupos únicos, candidatos exclusivos,
+grupos no vacíos y contadores coherentes. Comprueba además contadores de auditoría,
+IDs de issue únicos y membership de todas las referencias.
+
+No relee CoveredDiscovery, ReviewBatch ni imágenes. La cobertura interna se valida
+contra `covered_candidate_count` y la unión de miembros persistidos; Audit compara
+además esa unión con los candidatos canónicos reconstruidos. El hash fuente de
+CoveredDiscovery se exige válido en contrato, sin volver a contrastar sus bytes aquí.
+
+La decisión no usa heurísticas ni severidades:
+
+- Cero issues: `READY_FOR_EXTRACTION`, conteo cero y lista bloqueante vacía.
+- Uno o más issues, de cualquier tipo: `BLOCKED_BY_IDENTITY_ISSUES`, conteo total
+  y todos los `issue_id` en el orden persistido.
+
+La existencia de unresolved no bloquea: conserva incertidumbre legítima. Solo
+bloquea un issue del audit. No se corrigen ni eliminan observaciones.
+
+```powershell
+python -m sng_consulter.identity gate "BATCH_ID"
+```
+
+No requiere credenciales ni instancia proveedores. Imprime estado y número de
+issues bloqueantes; un estado bloqueado es una evaluación válida y devuelve código
+0. Errores de contrato, archivos ausentes o audit desactualizado devuelven 1.
+No se reejecuta audit ni fases anteriores.
+
+Publica `runtime/identity/<batch_id>/identity_gate.json` con staging y reemplazo
+atómico solo después de toda la validación. Un fallo conserva el gate previo y
+limpia staging. No modifica fuentes. Mismos bytes producen los mismos bytes de
+salida; no hay timestamps ni IDs volátiles en el resultado.
+
+## Cierre formal y límites
+
+3A y 3B ya están validadas según el estado del proyecto. Este cambio verifica el
+Gate mediante tests sintéticos; para el cierre formal resta ejecutarlo sobre
+los artefactos persistidos actuales y revisar su estado. Los tests del SDK usan
+HTTP simulado y por sí solos no certifican calidad semántica del proveedor.
 No hay second resolver, correcciones automáticas, retries adaptativos ni extracción técnica.
 Un caso que supere el presupuesto requiere definir una estrategia futura;
 no se implementa chunking porque puede perder relaciones entre observaciones.

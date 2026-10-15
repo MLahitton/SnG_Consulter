@@ -39,6 +39,11 @@ class IdentityAuditIssueProposal(BaseModel):
             raise ValueError("This issue type requires a resolved identity")
         if self.issue_type == IdentityAuditIssueType.UNRESOLVED_MAY_BE_RESOLVABLE and not self.unresolved_ids:
             raise ValueError("This issue type requires an unresolved group")
+        if self.issue_type == IdentityAuditIssueType.UNRESOLVED_MAY_BE_RESOLVABLE:
+            if self.identity_ids:
+                raise ValueError("UNRESOLVED_MAY_BE_RESOLVABLE must not reference resolved identities")
+        elif self.unresolved_ids:
+            raise ValueError("Resolved-identity issues must not reference unresolved groups")
         return self
 
 

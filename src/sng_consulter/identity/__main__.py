@@ -13,6 +13,7 @@ from .openai_resolver import (
     OpenAIIdentityConfigurationError, OpenAIIdentityResolver,
 )
 from .service import IdentityResolutionService, InvalidIdentityResolutionError
+from .gate import IdentityGateService, InvalidIdentityGateInputError
 from .audit.service import IdentityAuditService, InvalidIdentityAuditInputError, InvalidIdentityAuditProposalError
 from .audit.openai_auditor import (
     OpenAIIdentityAuditor, IdentityAuditConfigurationError, IdentityAuditAPIError,
@@ -21,16 +22,22 @@ from .audit.openai_auditor import (
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Identity resolution or independent audit of a persisted batch")
-    parser.add_argument("command_or_batch", help="BATCH_ID or audit BATCH_ID")
+    parser = argparse.ArgumentParser(description="Identity resolution, independent audit, or offline gate")
+    parser.add_argument("command_or_batch", help="BATCH_ID, audit BATCH_ID, or gate BATCH_ID")
     parser.add_argument("batch_id", nargs="?")
     args = parser.parse_args(argv)
     audit = args.command_or_batch == "audit"
-    if (audit and args.batch_id is None) or (not audit and args.batch_id is not None):
-        parser.error("Use BATCH_ID or audit BATCH_ID")
-    batch_id = args.batch_id if audit else args.command_or_batch
+    gate = args.command_or_batch == "gate"
+    subcommand = audit or gate
+    if (subcommand and args.batch_id is None) or (not subcommand and args.batch_id is not None):
+        parser.error("Use BATCH_ID, audit BATCH_ID, or gate BATCH_ID")
+    batch_id = args.batch_id if subcommand else args.command_or_batch
     resolver = None
     try:
+        if gate:
+            result = IdentityGateService().gate(batch_id)
+            print(f"Identity Gate: {result.status.value}\n{result.issue_count} blocking issues")
+            return 0
         if audit:
             resolver = OpenAIIdentityAuditor()
             result = IdentityAuditService(resolver).audit(batch_id)
@@ -45,6 +52,7 @@ def main(argv: list[str] | None = None) -> int:
             InvalidIdentityResponseError, OpenAIIdentityAPIError, OpenAIIdentityConfigurationError,
             InvalidIdentityAuditInputError, InvalidIdentityAuditProposalError, IdentityAuditConfigurationError,
             IdentityAuditAPIError, InvalidIdentityAuditResponseError, IdentityAuditContextBudgetExceeded,
+            InvalidIdentityGateInputError,
             IncompatiblePreparedDocumentError, ContentIdentityConflictError, FileNotFoundError) as exc:
         print(f"{type(exc).__name__}: {exc}", file=sys.stderr)
         return 1

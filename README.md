@@ -1,7 +1,7 @@
 ﻿# SnG Consulter
 
 Servicio de preparación documental para Steel & Glass. Fase 1 cerrada;
-estado actual: **3B.1 — Independent Identity Audit**.
+estado actual: **4A.2 — Technical contract hardening**.
 
 ## Discovery 2A.1 y 2A.2
 
@@ -270,10 +270,72 @@ El servicio valida referencias y membership, asigna `identity-audit-0001`, etc.,
 y publica `runtime/identity/<batch_id>/identity_audit.json` atómicamente solo tras
 éxito completo. Conserva `audited_identity_sha256` de los bytes exactos auditados.
 Un fallo conserva un audit previo; Identity y las fases previas permanecen intactos.
-Un consumidor posterior deberá comparar ese hash con Identity actual antes de
-usar el audit. Límite: 80 candidatos y 120.000 bytes de metadata UTF-8; excederlo
+Identity Gate compara ese hash con Identity actual antes de usar el audit.
+Límite: 80 candidatos y 120.000 bytes de metadata UTF-8; excederlo
 falla sin truncar ni llamar al proveedor. No hay corrección automática, chunking
 ni `identity_final.json`. La calidad real del audit requiere revisión manual.
+
+### Identity Gate 3C
+
+Resolver propone partición → Audit busca errores → Gate decide si puede avanzar.
+
+```powershell
+python -m sng_consulter.identity gate "BATCH_ID"
+```
+
+El Gate es offline y lee únicamente `identity.json` e `identity_audit.json`.
+No necesita API key ni ejecuta fases previas. Valida contratos, batch, exclusividad,
+IDs únicos, cobertura/contadores internos y referencias de issues a sus grupos.
+Exige que el hash auditado corresponda a los bytes exactos de Identity actual;
+un audit desactualizado falla explícitamente, sin ejecutarlo automáticamente.
+
+- `issues == []` → `READY_FOR_EXTRACTION`.
+- Cualquier issue → `BLOCKED_BY_IDENTITY_ISSUES`, conservando todos los issue IDs
+  en orden persistido, sin severidades ni excepciones por tipo.
+
+Unresolved legítimo no bloquea por sí solo. Se publica atómicamente
+`runtime/identity/<batch_id>/identity_gate.json`, con SHA-256 de los dos archivos
+consumidos, estado, conteo e IDs bloqueantes. Mismos bytes producen el mismo
+resultado, sin campos volátiles; los fallos preservan un gate previo.
+No inicia Technical Extraction ni corrige identidades. El Gate no reconstruye
+imágenes ni verifica de nuevo el artefacto CoveredDiscovery: valida el formato
+del hash fuente de Identity; la comprobación contra ese artefacto pertenece al Audit.
+
+## Technical Extraction Foundation — 4A.1 y 4A.2
+
+`technical/` define contratos tipados, evidencia canónica y orquestación con un
+`TechnicalExtractor` abstracto. No existe extractor OpenAI, prompt ni CLI de
+extracción real. Solo acepta Gate `READY_FOR_EXTRACTION` vigente.
+
+El builder valida los hashes exactos Gate → Identity/Audit, Audit → Identity e
+Identity → CoveredDiscovery actual. Reutiliza evidencia de Identity y páginas
+completas/texto nativo de Discovery, sin OCR, crops nuevos ni cambios de fases previas.
+Unresolved se preserva con su motivo, sin convertirlo en una Structure.
+
+Structure, Module, GlassPane físico, DecorativeElement y quantity son conceptos
+distintos. Vistas y repeticiones no determinan cantidad. Los campos conservan
+valor tipado, resolución EXPLICIT/INFERRED/DEFAULTED/UNKNOWN/CONFLICT y referencias
+internas de evidencia. Se permite representar quantity DEFAULTED=1 con regla
+explícita, pero no se aplica automáticamente. No se seleccionan sistemas comerciales.
+
+El servicio exige una propuesta por Identity, valida evidencia de su propia
+Identity, asigna IDs determinísticos y calcula RESOLVED/PARTIAL/AMBIGUOUS y paths
+de campos UNKNOWN recursivamente. Publica atómicamente
+`runtime/technical/<batch_id>/technical_extraction.json`, preservando salida previa
+ante fallo y sin modificar fuentes. Es un resultado interno no verificado;
+covered_candidate_id no es el contrato público final de Backend.
+Consulta los [contratos y límites de Fase 4](docs/PHASE_4_TECHNICAL_EXTRACTION.md).
+
+4A.2 añade `module_count: ResolvedNonNegativeInt` y `scope: ResolvedTechnicalScope`
+a cada estructura. Scope distingue GLASS_RELATED de NOT_GLASS_RELATED; una Identity
+resuelta no implica alcance de vidrio. La incertidumbre usa UNKNOWN/CONFLICT,
+sin valor UNCERTAIN. Las estructuras fuera de alcance permanecen en el resultado.
+
+Un `module_count` conocido debe coincidir con `len(modules)` y un
+`glass_pane_count` conocido con `len(glass_panes)`. UNKNOWN/CONFLICT permiten
+listas parciales sin inventar el total. Ambos campos nuevos participan en estado,
+missing_fields y validación de evidencia de su propia Identity. No se aplican
+defaults automáticos, ni se cuentan vistas o decoraciones como módulos/paños.
 
 ## Preparación disponible
 
