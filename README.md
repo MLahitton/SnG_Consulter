@@ -1,7 +1,7 @@
 ﻿# SnG Consulter
 
 Servicio de preparación documental para Steel & Glass. Fase 1 cerrada;
-estado actual: **3A.1 — Contratos y orquestación de Identity**.
+estado actual: **3A.2 — OpenAI Multimodal Identity Resolver**.
 
 ## Discovery 2A.1 y 2A.2
 
@@ -190,8 +190,8 @@ documento, ocurrencia, página, región, imagen y dimensiones del render. Los no
 originales no pertenecen al input analítico. SHA-256 corresponde a los bytes
 exactos consumidos, sin reserializar el modelo.
 
-`IdentityResolver` es un Protocol, sin implementación OpenAI, prompt, CLI ni endpoint
-productivo. `IdentityResolutionService` exige que la propuesta cubra cada candidato
+`IdentityResolver` es un Protocol con el adapter `OpenAIIdentityResolver` de 3A.2.
+`IdentityResolutionService` exige que la propuesta cubra cada candidato
 exactamente una vez, resuelto o `unresolved`, sin IDs desconocidos ni asignaciones
 dobles. No hay heurísticas, deduplicación o matching por referencias: una referencia
 igual puede dar identidades distintas y referencias diferentes pueden agruparse.
@@ -201,6 +201,50 @@ El servicio asigna IDs determinísticos por primera aparición de los candidatos
 el input canónico y publica `runtime/identity/<batch_id>/identity.json` mediante
 staging y reemplazo atómico. Fallos controlados conservan el resultado previo.
 No modifica artefactos de Fase 1/2. Véase el [contrato de Identity](docs/PHASE_3_IDENTITY.md).
+
+### OpenAI Identity 3A.2
+
+Configura `OPENAI_API_KEY` y, opcionalmente, `SNG_IDENTITY_MODEL` (por defecto
+`gpt-6.1-sol`, independiente de `SNG_DISCOVERY_MODEL`). Con el venv activo:
+
+```powershell
+python -m sng_consulter.identity "BATCH_ID"
+```
+
+El comando consume el CoveredDiscovery ya persistido, sin ejecutar fases previas.
+Envía una única solicitud Responses con metadata compacta de todos los candidatos
+y contact sheets PNG creados en memoria: seis tiles por sheet, crops con margen
+contextual del 5% por eje, limitados al render, sin deformación y con ID visible
+fuera del dibujo. No persiste crops, boards, requests ni responses del proveedor.
+Solo se publica el resultado canónico validado en `identity.json`.
+
+La salida estructurada usa exactamente `IdentityResolutionProposal` de 3A.1.
+Identity agrupa ítems/diseños provisionales; repeticiones visuales no determinan
+cantidad. Observaciones compuestas, ambiguas o posibles falsos positivos pueden
+permanecer unresolved, sin descartarse ni duplicarse.
+
+Límites operativos: 80 candidatos y 120.000 bytes UTF-8 de metadata por solicitud;
+excederlos produce `IdentityContextBudgetExceeded` antes de la llamada, sin truncar.
+Timeout: 180 segundos; `store=False`; cero retries. No hay Identity Audit, second
+pass, chunking, extracción técnica ni endpoint productivo. La fidelidad visual,
+agrupación, costo y latencia requieren prueba manual real.
+
+### Revisión visual diagnóstica de Identity
+
+Cuando existe `runtime/identity/<batch_id>/identity.json`, la pantalla del batch
+ofrece **Revisar Identity** en `/review/batches/<batch_id>/identity`.
+Se muestran identidades provisionales y unresolved por separado, con referencia
+cuando corresponde, descripción, motivo, IDs de candidatos y su evidencia visual.
+Cada crop se sirve como PNG en memoria desde
+`/review/batches/<batch_id>/identity/candidates/<covered_candidate_id>/crop`,
+usando el mismo helper de crop contextual de Identity y preservando proporciones.
+
+Antes de servir la vista o un crop se validan batch, hash de los bytes actuales
+de CoveredDiscovery, cobertura exacta de candidatos, contadores y referencias de
+ocurrencia/documento/página/región. Rutas quedan contenidas en las raíces previstas.
+Un Identity desactualizado devuelve 409 con explicación; artefactos ausentes o
+rutas no válidas devuelven 404. No ejecuta OpenAI ni Identity Audit, ni modifica
+imágenes, manifests o resultados. Es una herramienta manual de lectura.
 
 ## Preparación disponible
 

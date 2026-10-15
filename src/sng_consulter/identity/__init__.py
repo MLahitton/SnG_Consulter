@@ -1,4 +1,4 @@
-"""Identity contracts and orchestration; no concrete resolver/provider yet."""
+"""Identity contracts and orchestration; provider adapters are imported explicitly."""
 
 from .inputs import InvalidIdentityInputError, build_identity_input
 from .models import (

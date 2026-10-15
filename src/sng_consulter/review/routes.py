@@ -16,6 +16,9 @@ from pydantic import ValidationError
 
 from sng_consulter.discovery.inputs import normalized_region_to_render_bbox
 from sng_consulter.discovery.models import DiscoveryCandidate, DiscoveryResult
+from sng_consulter.identity.inputs import build_identity_input
+from sng_consulter.identity.models import IdentityResolutionProposal, IdentityResolutionResult
+from sng_consulter.identity.visuals import candidate_crop
 
 from sng_consulter.preparation import (
     DocumentPreparationService, deduplicate_text_spans, source_bbox_to_render_pixels,
@@ -32,6 +35,7 @@ UPLOAD_DIR = Path("runtime/review/uploads")
 PREPARED_DIR = Path("runtime/review/prepared")
 BATCH_DIR = Path("runtime/review/batches")
 DISCOVERY_DIR = Path("runtime/discovery")
+IDENTITY_DIR = Path("runtime/identity")
 logger = logging.getLogger(__name__)
 
 
@@ -123,9 +127,91 @@ def review_batch(batch_id: str) -> HTMLResponse:
                  for occurrence, number in pages]
         discovery_section = (f'<h2>Discovery — diagnóstico visual</h2><p>{len(result.candidates)} candidatos.</p>'
                              f'<ul>{"".join(links)}</ul>')
+    identity_section = (f'<p><a href="/review/batches/{batch_id}/identity">Revisar Identity</a></p>'
+                        if (IDENTITY_DIR / batch_id / "identity.json").exists() else "")
     return _html(f'<h1>Conjunto de revisión {batch_id}</h1>'
                  f'<p>Preparados: {successful} / {total}. Fallidos: {total - successful}.</p>'
-                 f'<ul>{"".join(rows)}</ul>{discovery_section}<p><a href="/review">Subir más documentos</a></p>')
+                 f'<ul>{"".join(rows)}</ul>{discovery_section}{identity_section}'
+                 '<p><a href="/review">Subir más documentos</a></p>')
+
+
+def _load_identity(batch_id: str):
+    _load_batch(batch_id)
+    try:
+        path = prepared_file(IDENTITY_DIR, IDENTITY_DIR / batch_id, Path("identity.json"))
+        result = IdentityResolutionResult.model_validate_json(path.read_bytes())
+        evidence = build_identity_input(batch_id, DISCOVERY_DIR, BATCH_DIR, PREPARED_DIR)
+    except FileNotFoundError as exc:
+        raise HTTPException(404, "Identity o su evidencia no existe o su ruta no es válida.") from exc
+    except ValueError as exc:
+        raise HTTPException(409, "Identity o su evidencia contiene un contrato inválido.") from exc
+    if result.batch_id != batch_id:
+        raise HTTPException(409, "Identity pertenece a otro conjunto.")
+    if result.source_covered_discovery_sha256 != evidence.source_covered_discovery_sha256:
+        raise HTTPException(409, "Identity está desactualizado respecto a CoveredDiscovery. Vuelve a ejecutar Identity.")
+    # Reuse the proposal contract to validate exclusivity without resolving again.
+    try:
+        proposal = IdentityResolutionProposal(
+            groups=[group.model_dump(exclude={"identity_id"}) for group in result.identities],
+            unresolved=[group.model_dump(exclude={"unresolved_id"}) for group in result.unresolved],
+        )
+    except ValidationError as exc:
+        raise HTTPException(409, "Identity contiene candidatos con asignaciones duplicadas.") from exc
+    candidates = {candidate.covered_candidate_id: candidate for candidate in evidence.candidates}
+    assigned = {cid for group in [*proposal.groups, *proposal.unresolved] for cid in group.candidate_ids}
+    resolved_count = sum(len(group.candidate_ids) for group in result.identities)
+    unresolved_count = sum(len(group.candidate_ids) for group in result.unresolved)
+    if (assigned != set(candidates) or result.covered_candidate_count != len(candidates)
+            or result.resolved_candidate_count != resolved_count or result.unresolved_candidate_count != unresolved_count
+            or len({g.identity_id for g in result.identities}) != len(result.identities)
+            or len({g.unresolved_id for g in result.unresolved}) != len(result.unresolved)):
+        raise HTTPException(409, "Identity debe representar cada candidato exactamente una vez y tener contadores e IDs coherentes.")
+    return result, candidates
+
+
+@router.get("/batches/{batch_id}/identity", response_class=HTMLResponse)
+def review_identity(batch_id: str) -> HTMLResponse:
+    result, candidates = _load_identity(batch_id)
+    base = f"/review/batches/{batch_id}/identity"
+
+    def members(candidate_ids):
+        items = []
+        for cid in candidate_ids:
+            candidate = candidates[cid]
+            items.append(f'<li><strong>{escape(cid)}</strong>'
+                         f'<p>Documento: {candidate.document_id}. Ocurrencia: {candidate.occurrence}. '
+                         f'Página: {candidate.page_number}.</p>'
+                         f'<img src="{base}/candidates/{cid}/crop" alt="{escape(cid)}" '
+                         'style="max-width:100%;max-height:60vh;width:auto;height:auto;object-fit:contain"></li>')
+        return f'<ul>{"".join(items)}</ul>'
+
+    identities = "".join(f'<section><h3>{group.identity_id}</h3>'
+        f'<p>Referencia: {escape(group.reference_hint) if group.reference_hint is not None else "Sin referencia"}</p>'
+        f'<p>{escape(group.description)}</p><p>Motivo: {escape(group.reason)}</p>'
+        f'{members(group.candidate_ids)}</section>' for group in result.identities)
+    unresolved = "".join(f'<section><h3>{group.unresolved_id}</h3><p>Motivo: {escape(group.reason)}</p>'
+                         f'{members(group.candidate_ids)}</section>' for group in result.unresolved)
+    return _html(f'<h1>Identity — revisión visual diagnóstica</h1>'
+                 f'<p><a href="/review/batches/{batch_id}">Volver al conjunto</a></p>'
+                 f'<h2>Identidades provisionales</h2>{identities or "<p>Sin identidades resueltas.</p>"}'
+                 f'<h2>Unresolved</h2>{unresolved or "<p>Sin observaciones unresolved.</p>"}')
+
+
+@router.get("/batches/{batch_id}/identity/candidates/{candidate_id}/crop")
+def identity_candidate_crop(batch_id: str, candidate_id: str) -> Response:
+    _, candidates = _load_identity(batch_id)
+    if candidate_id not in candidates:
+        raise HTTPException(404, "Candidato de Identity no encontrado.")
+    candidate = candidates[candidate_id]
+    with Image.open(candidate.image_path) as source:
+        with source.convert("RGB") as image:
+            try:
+                crop = candidate_crop(image, candidate)
+            except ValueError as exc:
+                raise HTTPException(409, "El render no corresponde a las dimensiones preparadas.") from exc
+            with crop, BytesIO() as buffer:
+                crop.save(buffer, format="PNG")
+                return Response(buffer.getvalue(), media_type="image/png", headers={"Cache-Control": "no-store"})
 
 
 def _load_discovery(batch_id: str) -> tuple[DiscoveryResult, dict[tuple[int, int], tuple[Path, PreparedPage]]]:
