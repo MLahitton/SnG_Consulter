@@ -1,7 +1,7 @@
 ﻿# SnG Consulter
 
 Servicio de preparación documental para Steel & Glass. Fase 1 cerrada;
-estado actual: **2C — Covered Discovery Result**.
+estado actual: **3A.1 — Contratos y orquestación de Identity**.
 
 ## Discovery 2A.1 y 2A.2
 
@@ -177,6 +177,30 @@ para auditar. Consolidación exige que coincida con los bytes actuales, incluso 
 solo cambió el formato del JSON. Si no coincide, rechaza el audit desactualizado
 y exige ejecutarlo nuevamente, sin hacerlo automáticamente. Audits anteriores sin
 hash son incompatibles; no se infieren hashes ni se migran resultados.
+
+## Identity 3A.1 — Contratos, evidencia y orquestación
+
+`CoveredDiscovery` contiene observaciones cubiertas. `IdentityResolution` agrupa
+esas observaciones por identidad provisional; no es Technical Extraction ni
+determina cantidades, medidas o especificaciones.
+
+`identity/` ensambla todos los candidatos del `covered_discovery.json` canónico
+con sus páginas preparadas, usando los lectores validados de storage. Conserva
+documento, ocurrencia, página, región, imagen y dimensiones del render. Los nombres
+originales no pertenecen al input analítico. SHA-256 corresponde a los bytes
+exactos consumidos, sin reserializar el modelo.
+
+`IdentityResolver` es un Protocol, sin implementación OpenAI, prompt, CLI ni endpoint
+productivo. `IdentityResolutionService` exige que la propuesta cubra cada candidato
+exactamente una vez, resuelto o `unresolved`, sin IDs desconocidos ni asignaciones
+dobles. No hay heurísticas, deduplicación o matching por referencias: una referencia
+igual puede dar identidades distintas y referencias diferentes pueden agruparse.
+Una asociación ambigua permanece `unresolved` con motivo explícito.
+
+El servicio asigna IDs determinísticos por primera aparición de los candidatos en
+el input canónico y publica `runtime/identity/<batch_id>/identity.json` mediante
+staging y reemplazo atómico. Fallos controlados conservan el resultado previo.
+No modifica artefactos de Fase 1/2. Véase el [contrato de Identity](docs/PHASE_3_IDENTITY.md).
 
 ## Preparación disponible
 
