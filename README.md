@@ -1,7 +1,7 @@
 ﻿# SnG Consulter
 
 Servicio de preparación documental para Steel & Glass. Fase 1 cerrada;
-estado actual: **4A.2 — Technical contract hardening**.
+estado actual: **4B.3 — Schedule Attribute Attribution Hardening**.
 
 ## Discovery 2A.1 y 2A.2
 
@@ -304,8 +304,8 @@ del hash fuente de Identity; la comprobación contra ese artefacto pertenece al 
 ## Technical Extraction Foundation — 4A.1 y 4A.2
 
 `technical/` define contratos tipados, evidencia canónica y orquestación con un
-`TechnicalExtractor` abstracto. No existe extractor OpenAI, prompt ni CLI de
-extracción real. Solo acepta Gate `READY_FOR_EXTRACTION` vigente.
+`TechnicalExtractor` abstracto y su adapter `OpenAITechnicalExtractor` de 4B.
+Solo acepta Gate `READY_FOR_EXTRACTION` vigente.
 
 El builder valida los hashes exactos Gate → Identity/Audit, Audit → Identity e
 Identity → CoveredDiscovery actual. Reutiliza evidencia de Identity y páginas
@@ -336,6 +336,38 @@ Un `module_count` conocido debe coincidir con `len(modules)` y un
 listas parciales sin inventar el total. Ambos campos nuevos participan en estado,
 missing_fields y validación de evidencia de su propia Identity. No se aplican
 defaults automáticos, ni se cuentan vistas o decoraciones como módulos/paños.
+
+### OpenAI Technical Extraction — 4B
+
+Con el venv activo, `OPENAI_API_KEY` configurada y los artefactos previos persistidos:
+
+```powershell
+$env:SNG_TECHNICAL_MODEL = "gpt-6.1-sol"
+python -m sng_consulter.technical "BATCH_ID"
+```
+
+El modelo técnico es independiente de Discovery/Identity/Audit, sin fallback.
+Cada Identity resuelta produce una solicitud Responses aislada, con salida
+estructurada exactamente `TechnicalStructureProposal`. Se envían metadata de esa
+Identity y sus candidatos, crops contextuales etiquetados en memoria, páginas
+WEBP completas una vez por documento/occurrence/página y todos sus spans nativos
+con bbox visual sin redondeo. No se envían paths ni nombres de archivos/clientes.
+
+El prompt distingue scope, quantity, módulos funcionales, paños físicos y decoración.
+Permite normalizar unidades documentales inequívocas m/cm/mm a mm conservando
+EXPLICIT y nota; prohíbe estimaciones desde píxeles/proporciones. No aplica defaults:
+cualquier DEFAULTED devuelto, incluso anidado, falla explícitamente. NOT_GLASS_RELATED
+se conserva; no implica conteos cero ni composición de vidrio inventada.
+
+Presupuesto por Identity: 24 candidatos, 8 páginas y 160.000 bytes UTF-8 de metadata
+textual, incluidas etiquetas de imágenes. No se truncan datos ni hay chunking/retries.
+`store=False`, timeout 180 segundos y `max_retries=0`. Un fallo en cualquier Identity
+impide publicar todo el batch y conserva el resultado previo. El adapter no escribe
+artefactos: el servicio existente sigue publicando tras validar todas las propuestas.
+El CLI cierra el cliente ante éxito/error y nunca ejecuta fases anteriores.
+
+No existen Technical Audit, Verification ni Final Resolution. El empaquetado es
+determinístico; la calidad y variabilidad del proveedor requieren prueba manual real.
 
 ## Preparación disponible
 
@@ -504,3 +536,42 @@ arquitectónica. Es una herramienta local de revisión, sin autenticación.
   del archivo original para resubirlo; si falla, la preparación anterior se conserva.
 - El cierre de un caso real requiere su revisión manual. La suite pasando no
   certifica por sí sola todos los documentos ni el benchmark completo.
+
+
+### Evidencia dimensional de Technical Extraction (4B.1)
+
+Además de crops individuales y páginas completas, cada Identity recibe un contexto
+PNG por página (unión de candidatos + margen del 6% de página), generado en memoria,
+y spans nativos locales por intersección, sin alterar RAW ni perder spans completos.
+Unidades explícitas producen EXPLICIT; una convención documental coherente inferida
+produce INFERRED con evidencia y nota. Ambigüedad queda UNKNOWN. No estima por píxeles.
+Structure, Module y GlassPane requieren evidencia dimensional propia; no se propagan
+medidas. `location` es ubicación del elemento dentro del proyecto, no la dirección
+del title block. Ver [contrato y límites](docs/PHASE_4_TECHNICAL_EXTRACTION.md).
+
+### Evidencia de schedules asociados (4B.2)
+
+Cada Identity/página recibe además un Associated Annotation Context PNG en memoria:
+misma unión de candidatos, márgenes de página del 8% horizontal, 6% superior y 12%
+inferior, con spans locales exactos y sin interpretar texto localmente. Conserva toda
+la evidencia anterior y una request por Identity. El prompt exige revisar schedules
+y verificar su asociación; la presencia de una tabla vecina dentro del crop no basta.
+Una especificación explícita puede aplicarse a varios panes solo si el schedule
+abarca inequívocamente al conjunto, citando evidencia y explicándolo en nota. No
+inventa espesor. Quantity puede venir de una columna asociada; cuerpos de vidrio
+no equivalen a módulos. Una columna SISTEMA no implica selección comercial SnG.
+Las reglas dimensionales y de location de 4B.1 permanecen sin cambios. Falta validar
+manualmente la mejora de schedules; los tests no llaman al proveedor real.
+
+### Atribución de atributos documentales (4B.3)
+
+El prompt exige que cada atributo de schedules/descripciones/captions/notas conserve
+su componente propietario. Una dimensión o material de frame, sill, profile u otro
+componente no se convierte en especificación/espesor de vidrio por compartir fila.
+Primero se establece qué modifica el número; después puede normalizarse su unidad.
+La mera existencia de vidrio no es una especificación; ante atribución ambigua usa
+UNKNOWN. Tipo y espesor se conservan separados, sin inventar el que falte. Cada
+glass_specification EXPLICIT debe explicar su soporte documental y alcance en note;
+solo puede propagarse si el texto la aplica inequívocamente a todos los panes.
+No cambia contratos, evidencia visual ni reglas dimensionales. Falta comprobar la
+atribución con el proveedor real; los tests sintéticos validan prompt y adapter.

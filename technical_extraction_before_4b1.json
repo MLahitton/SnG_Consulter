@@ -1,0 +1,5085 @@
+{
+  "batch_id": "513668fe838b468786aae38a25f7ab99",
+  "source_identity_sha256": "2b2cc098b4e64db9ab04892be5fd25ed507bb54944c730cc3655c4954138f245",
+  "source_identity_gate_sha256": "58657f05330119cc4f6c55aa2c65531f434dac9075badd28701447fa85c0cc5e",
+  "structures": [
+    {
+      "identity_id": "identity-0001",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0001",
+          "covered-0003"
+        ],
+        "note": "The paired framed leaves have continuous, glass-like infill in elevation and thin infill lines in plan."
+      },
+      "reference": {
+        "value": "V-01",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0003"
+        ],
+        "note": "The reference appears beneath the associated elevation."
+      },
+      "name": {
+        "value": "Two-leaf hinged glazed opening",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0001",
+          "covered-0003"
+        ],
+        "note": "The plan shows two swinging leaves meeting centrally; the elevation shows their framed infill."
+      },
+      "category": {
+        "value": "Glazed opening",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0001",
+          "covered-0003"
+        ],
+        "note": "Derived from the framed infill and paired opening geometry."
+      },
+      "location": {
+        "value": null,
+        "resolution": "UNKNOWN",
+        "evidence_candidate_ids": [],
+        "note": null
+      },
+      "quantity": {
+        "value": 1,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0003"
+        ],
+        "note": "The schedule beneath this elevation in the full-page V-01 detail lists a quantity of 1."
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "Dimension annotations are present, but their units are not unambiguously documented in the supplied evidence."
+        },
+        "height_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "Dimension annotations are present, but their units are not unambiguously documented in the supplied evidence."
+        }
+      },
+      "module_count": {
+        "value": 2,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0001",
+          "covered-0003"
+        ],
+        "note": "Two separately framed operating leaves are shown, with corresponding swing arcs."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Left leaf in the exterior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0003"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": "The leaf dimension annotation has no unambiguous documentary unit."
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "HINGED",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0001",
+              "covered-0003"
+            ],
+            "note": "The plan swing arc and elevation operating lines indicate a side-hinged leaf."
+          },
+          "opening_direction": {
+            "value": "Outward toward the exterior, hinged at the left outer jamb",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0001",
+              "covered-0003"
+            ],
+            "note": "The swing arc lies on the exterior side of the plan."
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0003"
+            ],
+            "note": "One uninterrupted glazed infill area is shown within the leaf, without an intermediate physical division."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the left leaf frame",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0003"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0001"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0001"
+        },
+        {
+          "position_hint": {
+            "value": "Right leaf in the exterior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0003"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": "The leaf dimension annotation has no unambiguous documentary unit."
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "HINGED",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0001",
+              "covered-0003"
+            ],
+            "note": "The plan swing arc and elevation operating lines indicate a side-hinged leaf."
+          },
+          "opening_direction": {
+            "value": "Outward toward the exterior, hinged at the right outer jamb",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0001",
+              "covered-0003"
+            ],
+            "note": "The swing arc lies on the exterior side of the plan."
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0003"
+            ],
+            "note": "One uninterrupted glazed infill area is shown within the leaf, without an intermediate physical division."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the right leaf frame",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0003"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0002"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0002"
+        }
+      ],
+      "notes": [],
+      "technical_structure_id": "technical-structure-0001",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "location",
+        "dimensions.width_mm",
+        "dimensions.height_mm",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].glass_specification",
+        "modules[1].dimensions.width_mm",
+        "modules[1].dimensions.height_mm",
+        "modules[1].glass_panes[0].dimensions.width_mm",
+        "modules[1].glass_panes[0].dimensions.height_mm",
+        "modules[1].glass_panes[0].glass_specification"
+      ]
+    },
+    {
+      "identity_id": "identity-0002",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0005",
+          "covered-0006",
+          "covered-0007"
+        ],
+        "note": "The framed infill in elevation and thin infill shown in plan and section consistently indicate a glazed opening."
+      },
+      "reference": {
+        "value": "V-02",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0005",
+          "covered-0006",
+          "covered-0007"
+        ],
+        "note": "The corresponding plan, elevation and section are labeled V-02 on the full page."
+      },
+      "name": {
+        "value": "Two-panel sliding window",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0005",
+          "covered-0006"
+        ],
+        "note": "The low opening has two framed panels with opposing horizontal movement arrows."
+      },
+      "category": {
+        "value": "Window",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0006",
+          "covered-0007"
+        ],
+        "note": "The elevation and section show a low glazed opening above a substantial sill wall."
+      },
+      "location": {
+        "value": null,
+        "resolution": "UNKNOWN",
+        "evidence_candidate_ids": [],
+        "note": null
+      },
+      "quantity": {
+        "value": 1,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0006"
+        ],
+        "note": "The V-02 schedule beneath the corresponding elevation on the full page lists 1 in the quantity column."
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "The associated width dimension lacks an unambiguous documentary unit for conversion to millimetres."
+        },
+        "height_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "The associated height dimension lacks an unambiguous documentary unit for conversion to millimetres."
+        }
+      },
+      "module_count": {
+        "value": 2,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0005",
+          "covered-0006"
+        ],
+        "note": "Two separately framed sliding panels are shown, each with its own movement arrow."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Left panel in exterior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0006"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0005",
+              "covered-0006"
+            ],
+            "note": "Horizontal movement arrow and sliding-track plan geometry indicate sliding operation."
+          },
+          "opening_direction": {
+            "value": "To the right as viewed in the exterior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0006"
+            ],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0005",
+              "covered-0006"
+            ],
+            "note": "One continuous glazed infill is indicated within the panel frame, without a supported physical subdivision."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the left sliding panel",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0006"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0003"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0003"
+        },
+        {
+          "position_hint": {
+            "value": "Right panel in exterior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0006"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0005",
+              "covered-0006"
+            ],
+            "note": "Horizontal movement arrow and sliding-track plan geometry indicate sliding operation."
+          },
+          "opening_direction": {
+            "value": "To the left as viewed in the exterior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0006"
+            ],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0005",
+              "covered-0006"
+            ],
+            "note": "One continuous glazed infill is indicated within the panel frame, without a supported physical subdivision."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the right sliding panel",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0006"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0004"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0004"
+        }
+      ],
+      "notes": [],
+      "technical_structure_id": "technical-structure-0002",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "location",
+        "dimensions.width_mm",
+        "dimensions.height_mm",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].glass_specification",
+        "modules[1].dimensions.width_mm",
+        "modules[1].dimensions.height_mm",
+        "modules[1].glass_panes[0].dimensions.width_mm",
+        "modules[1].glass_panes[0].dimensions.height_mm",
+        "modules[1].glass_panes[0].glass_specification"
+      ]
+    },
+    {
+      "identity_id": "identity-0003",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0008",
+          "covered-0009",
+          "covered-0010"
+        ],
+        "note": "The coordinated plan, elevation and section show a framed opening with continuous thin glazing-like infill."
+      },
+      "reference": {
+        "value": "V-03",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0009"
+        ],
+        "note": "The full-page detail group containing this elevation is labeled V-03."
+      },
+      "name": {
+        "value": "Single-leaf hinged glazed window",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0008",
+          "covered-0009",
+          "covered-0010"
+        ],
+        "note": "A single operable framed leaf is shown above a raised sill, with glazing-like infill."
+      },
+      "category": {
+        "value": "Window",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0009",
+          "covered-0010"
+        ],
+        "note": "The section shows the opening terminating above floor level on a substantial sill or parapet."
+      },
+      "location": {
+        "value": "Parcelacion Horizontes, lote 134, El Retiro, Antioquia",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0009"
+        ],
+        "note": "The native title-block text on the page containing this candidate identifies the project location; no item-specific room is identified."
+      },
+      "quantity": {
+        "value": 1,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0009"
+        ],
+        "note": "The V-03 schedule beneath the associated elevation on the full page lists one in the quantity column."
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "A width annotation is supplied, but its measurement unit is not explicitly established."
+        },
+        "height_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "Height annotations are supplied, but their measurement unit is not explicitly established."
+        }
+      },
+      "module_count": {
+        "value": 1,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0008",
+          "covered-0009"
+        ],
+        "note": "The plan and elevation unambiguously show one framed operable leaf."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Single leaf within the perimeter frame",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0009"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "HINGED",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0008",
+              "covered-0009"
+            ],
+            "note": "The plan swing arc and elevation operating diagonals indicate hinged operation."
+          },
+          "opening_direction": {
+            "value": "Outward, with hinges on the right when viewed from the exterior",
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0008",
+              "covered-0009"
+            ],
+            "note": "The plan swing is on the exterior side, and the operating diagonals converge at the right side of the exterior elevation."
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0009",
+              "covered-0010"
+            ],
+            "note": "The leaf contains one continuous infill area, without visible intermediate profiles or physical pane divisions."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Continuous central infill within the operable leaf",
+                "resolution": "INFERRED",
+                "evidence_candidate_ids": [
+                  "covered-0009"
+                ],
+                "note": "The framed leaf encloses one uninterrupted glazing-like area."
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0005"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0005"
+        }
+      ],
+      "notes": [],
+      "technical_structure_id": "technical-structure-0003",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "dimensions.width_mm",
+        "dimensions.height_mm",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].glass_specification"
+      ]
+    },
+    {
+      "identity_id": "identity-0004",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0012",
+          "covered-0013"
+        ],
+        "note": "The elevation shows two framed, uninterrupted glazed infills, corroborated by the thin infill shown in section."
+      },
+      "reference": {
+        "value": "V-04",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0012"
+        ],
+        "note": "The associated elevation and its full-page detail group identify this item."
+      },
+      "name": {
+        "value": "Two-leaf sliding glazed opening",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0011",
+          "covered-0012"
+        ],
+        "note": "Two framed leaves and opposing horizontal movement arrows establish the descriptive name."
+      },
+      "category": {
+        "value": "Glazed opening",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0012",
+          "covered-0013"
+        ],
+        "note": "Based on the framed infills and their elevation/section relationship."
+      },
+      "location": {
+        "value": null,
+        "resolution": "UNKNOWN",
+        "evidence_candidate_ids": [],
+        "note": null
+      },
+      "quantity": {
+        "value": 1,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0012"
+        ],
+        "note": "The schedule beneath this elevation in the same full-page V-04 detail group indicates one item."
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "Dimension annotations are present, but their units are not unambiguously established by the supplied evidence."
+        },
+        "height_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "Dimension annotations are present, but their units are not unambiguously established by the supplied evidence."
+        }
+      },
+      "module_count": {
+        "value": 2,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0011",
+          "covered-0012"
+        ],
+        "note": "Two separately framed leaves have individual sliding movement arrows."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Left leaf in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0012"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": "The leaf-width annotation does not establish an unambiguous unit."
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0011",
+              "covered-0012"
+            ],
+            "note": "Horizontal movement arrows and the track arrangement indicate sliding operation."
+          },
+          "opening_direction": {
+            "value": "To the right as viewed in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0012"
+            ],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0012"
+            ],
+            "note": "The leaf contains one continuous infill without an observable intermediate glazing division."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the left sliding leaf",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0012"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0006"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0006"
+        },
+        {
+          "position_hint": {
+            "value": "Right leaf in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0012"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0011",
+              "covered-0012"
+            ],
+            "note": "Horizontal movement arrows and the track arrangement indicate sliding operation."
+          },
+          "opening_direction": {
+            "value": "To the left as viewed in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0012"
+            ],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0012"
+            ],
+            "note": "The leaf contains one continuous infill without an observable intermediate glazing division."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the right sliding leaf",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0012"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0007"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0007"
+        }
+      ],
+      "notes": [],
+      "technical_structure_id": "technical-structure-0004",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "location",
+        "dimensions.width_mm",
+        "dimensions.height_mm",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].glass_specification",
+        "modules[1].dimensions.width_mm",
+        "modules[1].dimensions.height_mm",
+        "modules[1].glass_panes[0].dimensions.width_mm",
+        "modules[1].glass_panes[0].dimensions.height_mm",
+        "modules[1].glass_panes[0].glass_specification"
+      ]
+    },
+    {
+      "identity_id": "identity-0005",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0015"
+        ],
+        "note": "The elevation shows glazed infill within the two sliding leaf frames."
+      },
+      "reference": {
+        "value": "V-05",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0014",
+          "covered-0015"
+        ],
+        "note": "Confirmed by the associated view labels and detail identification on the full page."
+      },
+      "name": {
+        "value": "Two-leaf sliding glazed door",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0014",
+          "covered-0015",
+          "covered-0016"
+        ],
+        "note": "Derived from the two glazed leaf frames, horizontal movement arrows, receiving recess and floor-level section."
+      },
+      "category": {
+        "value": "Glazed sliding door",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0015",
+          "covered-0016"
+        ],
+        "note": "The glazed elevation and floor-level section indicate a door assembly."
+      },
+      "location": {
+        "value": null,
+        "resolution": "UNKNOWN",
+        "evidence_candidate_ids": [],
+        "note": null
+      },
+      "quantity": {
+        "value": 1,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0015"
+        ],
+        "note": "The associated V-05 schedule beneath this elevation on the full page indicates one in the quantity column."
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "The supplied dimension annotations do not establish an unambiguous unit for conversion to millimetres."
+        },
+        "height_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "The supplied dimension annotations do not establish an unambiguous unit for conversion to millimetres."
+        }
+      },
+      "module_count": {
+        "value": 2,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0015"
+        ],
+        "note": "Two separately framed leaves are shown, each with a sliding arrow; the adjacent receiving area is not an additional module."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Left leaf in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0015"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0014",
+              "covered-0015"
+            ],
+            "note": "Horizontal movement arrow and sliding track arrangement."
+          },
+          "opening_direction": {
+            "value": "To the right as viewed from the interior",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0015"
+            ],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0015"
+            ],
+            "note": "One continuous glazed infill is shown within the leaf, without an intervening structural division."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the left sliding leaf",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0015"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0008"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0008"
+        },
+        {
+          "position_hint": {
+            "value": "Right leaf, immediately beside the receiving recess in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0015"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0014",
+              "covered-0015"
+            ],
+            "note": "Horizontal movement arrow and sliding track arrangement."
+          },
+          "opening_direction": {
+            "value": "To the right toward the receiving recess, as viewed from the interior",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0014",
+              "covered-0015"
+            ],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0015"
+            ],
+            "note": "One continuous glazed infill is shown within the leaf, without an intervening structural division."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the right sliding leaf",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0015"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0009"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0009"
+        }
+      ],
+      "notes": [],
+      "technical_structure_id": "technical-structure-0005",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "location",
+        "dimensions.width_mm",
+        "dimensions.height_mm",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].glass_specification",
+        "modules[1].dimensions.width_mm",
+        "modules[1].dimensions.height_mm",
+        "modules[1].glass_panes[0].dimensions.width_mm",
+        "modules[1].glass_panes[0].dimensions.height_mm",
+        "modules[1].glass_panes[0].glass_specification"
+      ]
+    },
+    {
+      "identity_id": "identity-0006",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0017",
+          "covered-0018"
+        ],
+        "note": "The coordinated plan and elevation show a framed glazed assembly with sliding panels."
+      },
+      "reference": {
+        "value": "V-06",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0018"
+        ],
+        "note": "Confirmed by the associated view labels and detail designation on the full page."
+      },
+      "name": {
+        "value": "Three-panel glazed sliding door",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0017",
+          "covered-0018",
+          "covered-0019"
+        ],
+        "note": "Derived from the full-height glazed elevation, floor-track section and coordinated sliding symbols."
+      },
+      "category": {
+        "value": "Glazed door",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0018",
+          "covered-0019"
+        ],
+        "note": "The elevation and floor-level section support classification as a glazed door assembly."
+      },
+      "location": {
+        "value": null,
+        "resolution": "UNKNOWN",
+        "evidence_candidate_ids": [],
+        "note": null
+      },
+      "quantity": {
+        "value": 1,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0018"
+        ],
+        "note": "The V-06 schedule beneath this elevation on the full page lists a quantity of 1."
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "The associated plan gives an overall width of 7.05, but the supplied evidence does not explicitly establish its unit."
+        },
+        "height_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "The elevation and section give a height of 2.4, but the supplied evidence does not explicitly establish its unit."
+        }
+      },
+      "module_count": {
+        "value": 3,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0017",
+          "covered-0018"
+        ],
+        "note": "Three separately framed functional panels are shown in the coordinated views."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Left panel in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0018"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "FIXED",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0017",
+              "covered-0018"
+            ],
+            "note": "The left panel carries a fixed-panel circle symbol in both views, contrasting with the adjacent sliding arrows."
+          },
+          "opening_direction": {
+            "value": null,
+            "resolution": "UNKNOWN",
+            "evidence_candidate_ids": [],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0018"
+            ],
+            "note": "One uninterrupted glazed infill is shown within the panel frame, without internal glass divisions."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the left fixed panel",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0018"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0010"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0010"
+        },
+        {
+          "position_hint": {
+            "value": "Middle panel in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0018"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0017",
+              "covered-0018"
+            ],
+            "note": "Horizontal movement arrows and the tracked plan indicate sliding operation."
+          },
+          "opening_direction": {
+            "value": "Leftward as viewed from the interior",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0018"
+            ],
+            "note": "Indicated by the left-pointing arrow."
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0018"
+            ],
+            "note": "One uninterrupted glazed infill is shown within the panel frame, without internal glass divisions."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the middle sliding panel",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0018"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0011"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0011"
+        },
+        {
+          "position_hint": {
+            "value": "Right panel in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0018"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0017",
+              "covered-0018"
+            ],
+            "note": "Horizontal movement arrows and the tracked plan indicate sliding operation."
+          },
+          "opening_direction": {
+            "value": "Leftward as viewed from the interior",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0018"
+            ],
+            "note": "Indicated by the left-pointing arrow."
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0018"
+            ],
+            "note": "One uninterrupted glazed infill is shown within the panel frame, without internal glass divisions."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the right sliding panel",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0018"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0012"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0012"
+        }
+      ],
+      "notes": [],
+      "technical_structure_id": "technical-structure-0006",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "location",
+        "dimensions.width_mm",
+        "dimensions.height_mm",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].opening_direction",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].glass_specification",
+        "modules[1].dimensions.width_mm",
+        "modules[1].dimensions.height_mm",
+        "modules[1].glass_panes[0].dimensions.width_mm",
+        "modules[1].glass_panes[0].dimensions.height_mm",
+        "modules[1].glass_panes[0].glass_specification",
+        "modules[2].dimensions.width_mm",
+        "modules[2].dimensions.height_mm",
+        "modules[2].glass_panes[0].dimensions.width_mm",
+        "modules[2].glass_panes[0].dimensions.height_mm",
+        "modules[2].glass_panes[0].glass_specification"
+      ]
+    },
+    {
+      "identity_id": "identity-0007",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0021",
+          "covered-0022"
+        ],
+        "note": "The elevation and section depict a framed glazed sliding assembly."
+      },
+      "reference": {
+        "value": "V-07",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0021"
+        ],
+        "note": "Confirmed by the associated elevation caption and detail heading on the full page."
+      },
+      "name": {
+        "value": "Two-leaf glazed sliding door",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0020",
+          "covered-0021"
+        ],
+        "note": "The associated detail heading identifies a door; the elevation and plan show two glazed leaves with horizontal movement arrows."
+      },
+      "category": {
+        "value": "Glazed sliding door",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0020",
+          "covered-0021"
+        ],
+        "note": "Based on the door detail caption, glazing depiction and sliding operation symbols."
+      },
+      "location": {
+        "value": null,
+        "resolution": "UNKNOWN",
+        "evidence_candidate_ids": [],
+        "note": null
+      },
+      "quantity": {
+        "value": 2,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0021"
+        ],
+        "note": "The V-07 schedule beneath this elevation on the full page lists 2 in the quantity column."
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "Overall width is dimensioned, but documentary units are not established sufficiently to normalize to millimetres."
+        },
+        "height_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "Overall height is dimensioned, but documentary units are not established sufficiently to normalize to millimetres."
+        }
+      },
+      "module_count": {
+        "value": 2,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0020",
+          "covered-0021"
+        ],
+        "note": "Two separately framed sliding leaves are shown, each with its own movement arrow."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Left leaf in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0021"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": "The leaf width annotation lacks established documentary units."
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0020",
+              "covered-0021"
+            ],
+            "note": "Horizontal movement arrows are shown in plan and elevation."
+          },
+          "opening_direction": {
+            "value": "Slides right toward the centre, as viewed in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0021"
+            ],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0021"
+            ],
+            "note": "The leaf contains one continuous glazed field without observable intermediate glazing divisions."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the left sliding leaf",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0021"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0013"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0013"
+        },
+        {
+          "position_hint": {
+            "value": "Right leaf in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0021"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0020",
+              "covered-0021"
+            ],
+            "note": "Horizontal movement arrows are shown in plan and elevation."
+          },
+          "opening_direction": {
+            "value": "Slides left toward the centre, as viewed in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0021"
+            ],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0021"
+            ],
+            "note": "The leaf contains one continuous glazed field without observable intermediate glazing divisions."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the right sliding leaf",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0021"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0014"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0014"
+        }
+      ],
+      "notes": [],
+      "technical_structure_id": "technical-structure-0007",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "location",
+        "dimensions.width_mm",
+        "dimensions.height_mm",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].glass_specification",
+        "modules[1].dimensions.width_mm",
+        "modules[1].dimensions.height_mm",
+        "modules[1].glass_panes[0].dimensions.width_mm",
+        "modules[1].glass_panes[0].dimensions.height_mm",
+        "modules[1].glass_panes[0].glass_specification"
+      ]
+    },
+    {
+      "identity_id": "identity-0008",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0023",
+          "covered-0024",
+          "covered-0025"
+        ],
+        "note": "The framed, shaded sliding leaves and corresponding section indicate a glazed window assembly."
+      },
+      "reference": {
+        "value": "V-08",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0023",
+          "covered-0024"
+        ],
+        "note": "The corresponding detail group on the full page is labeled V-08."
+      },
+      "name": {
+        "value": "Two-leaf sliding window",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0023",
+          "covered-0024"
+        ],
+        "note": "Two framed leaves with horizontal movement arrows are shown in plan and elevation."
+      },
+      "category": {
+        "value": "Window",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0024",
+          "covered-0025"
+        ],
+        "note": "The glazed opening is positioned above a solid lower wall."
+      },
+      "location": {
+        "value": "Parcelacion Horizontes, lote 134, El Retiro, Antioquia",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0023"
+        ],
+        "note": "Project location is supplied by the native title-block text on the same page; no room-specific location is established."
+      },
+      "quantity": {
+        "value": 2,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0024"
+        ],
+        "note": "The schedule beneath this item's elevation on the full page lists two in the quantity column."
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "Dimension annotations are present, but their units are not unambiguously established in the supplied evidence."
+        },
+        "height_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "Dimension annotations are present, but their units are not unambiguously established in the supplied evidence."
+        }
+      },
+      "module_count": {
+        "value": 2,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0023",
+          "covered-0024"
+        ],
+        "note": "Two separately framed operating leaves are indicated."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Left leaf in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0024"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0023",
+              "covered-0024"
+            ],
+            "note": "Horizontal movement arrows are shown."
+          },
+          "opening_direction": {
+            "value": "Rightward, toward the center, as viewed from the interior",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0024"
+            ],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0024"
+            ],
+            "note": "A single uninterrupted glazed infill is depicted within this leaf, without an internal pane-dividing profile."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the left sliding leaf",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0024"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0015"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0015"
+        },
+        {
+          "position_hint": {
+            "value": "Right leaf in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0024"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0023",
+              "covered-0024"
+            ],
+            "note": "Horizontal movement arrows are shown."
+          },
+          "opening_direction": {
+            "value": "Leftward, toward the center, as viewed from the interior",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0024"
+            ],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0024"
+            ],
+            "note": "A single uninterrupted glazed infill is depicted within this leaf, without an internal pane-dividing profile."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the right sliding leaf",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0024"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0016"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0016"
+        }
+      ],
+      "notes": [],
+      "technical_structure_id": "technical-structure-0008",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "dimensions.width_mm",
+        "dimensions.height_mm",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].glass_specification",
+        "modules[1].dimensions.width_mm",
+        "modules[1].dimensions.height_mm",
+        "modules[1].glass_panes[0].dimensions.width_mm",
+        "modules[1].glass_panes[0].dimensions.height_mm",
+        "modules[1].glass_panes[0].glass_specification"
+      ]
+    },
+    {
+      "identity_id": "identity-0009",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0027"
+        ],
+        "note": "The elevation depicts two framed glazed leaves with glazing marks."
+      },
+      "reference": {
+        "value": "V-09",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0026",
+          "covered-0027",
+          "covered-0028"
+        ],
+        "note": "The corresponding plan, elevation and section are labeled V-09 in the full-page context."
+      },
+      "name": {
+        "value": "Two-leaf glazed sliding door",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0026",
+          "covered-0027",
+          "covered-0028"
+        ],
+        "note": "Derived from the two glazed leaves, horizontal movement arrows and floor-level sliding profile."
+      },
+      "category": {
+        "value": "Glazed sliding door",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0027",
+          "covered-0028"
+        ],
+        "note": "The glazed elevation and floor-level section support classification as a sliding door."
+      },
+      "location": {
+        "value": null,
+        "resolution": "UNKNOWN",
+        "evidence_candidate_ids": [],
+        "note": null
+      },
+      "quantity": {
+        "value": 1,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0027"
+        ],
+        "note": "The V-09 schedule beneath the corresponding elevation on the full page gives a quantity of 1."
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "The overall width dimension is documented, but its unit is not unambiguously established."
+        },
+        "height_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "The overall height dimension is documented, but its unit is not unambiguously established."
+        }
+      },
+      "module_count": {
+        "value": 2,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0026",
+          "covered-0027"
+        ],
+        "note": "Two separately framed leaves are shown, each with a sliding movement arrow."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Left leaf in the supplied exterior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0027"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0026",
+              "covered-0027"
+            ],
+            "note": "Horizontal movement arrows and the parallel-track plan indicate sliding operation."
+          },
+          "opening_direction": {
+            "value": "Rightward as drawn in the exterior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0027"
+            ],
+            "note": "The arrow on the left leaf points right."
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0027"
+            ],
+            "note": "One continuous glazed infill is shown within this leaf, without intermediate pane divisions."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Glazed infill within the left leaf",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0027"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0017"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0017"
+        },
+        {
+          "position_hint": {
+            "value": "Right leaf in the supplied exterior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0027"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0026",
+              "covered-0027"
+            ],
+            "note": "Horizontal movement arrows and the parallel-track plan indicate sliding operation."
+          },
+          "opening_direction": {
+            "value": "Leftward as drawn in the exterior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0027"
+            ],
+            "note": "The arrow on the right leaf points left."
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0027"
+            ],
+            "note": "One continuous glazed infill is shown within this leaf, without intermediate pane divisions."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Glazed infill within the right leaf",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0027"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0018"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0018"
+        }
+      ],
+      "notes": [],
+      "technical_structure_id": "technical-structure-0009",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "location",
+        "dimensions.width_mm",
+        "dimensions.height_mm",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].glass_specification",
+        "modules[1].dimensions.width_mm",
+        "modules[1].dimensions.height_mm",
+        "modules[1].glass_panes[0].dimensions.width_mm",
+        "modules[1].glass_panes[0].dimensions.height_mm",
+        "modules[1].glass_panes[0].glass_specification"
+      ]
+    },
+    {
+      "identity_id": "identity-0010",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0030"
+        ],
+        "note": "The elevation shows framed glazing with glass indication marks."
+      },
+      "reference": {
+        "value": "V-10",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0029",
+          "covered-0030"
+        ],
+        "note": "The corresponding plan and elevation are identified as V-10 in the full-page context."
+      },
+      "name": {
+        "value": "Four-panel horizontal sliding window",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0029",
+          "covered-0030"
+        ],
+        "note": "Derived from the four framed glazed panels and the sliding movement arrows in plan."
+      },
+      "category": {
+        "value": "Window",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0030",
+          "covered-0031"
+        ],
+        "note": "The low glazed assembly is shown above a solid wall in the associated section."
+      },
+      "location": {
+        "value": null,
+        "resolution": "UNKNOWN",
+        "evidence_candidate_ids": [],
+        "note": null
+      },
+      "quantity": {
+        "value": null,
+        "resolution": "UNKNOWN",
+        "evidence_candidate_ids": [],
+        "note": null
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": null
+        },
+        "height_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": null
+        }
+      },
+      "module_count": {
+        "value": 4,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0029",
+          "covered-0030"
+        ],
+        "note": "Four separately framed panels are shown in elevation, corresponding to two end panels and two moving central panels in plan."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Left end in exterior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0030"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "FIXED",
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0029",
+              "covered-0030"
+            ],
+            "note": "The end panel has a circular plan symbol rather than a movement arrow, contrasting with the moving central panels."
+          },
+          "opening_direction": {
+            "value": null,
+            "resolution": "UNKNOWN",
+            "evidence_candidate_ids": [],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0030"
+            ],
+            "note": "One continuous glazed infill is shown within this panel frame, without an internal structural subdivision."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the left end panel",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0030"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0019"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0019"
+        },
+        {
+          "position_hint": {
+            "value": "Center-left in exterior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0030"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0029",
+              "covered-0030"
+            ],
+            "note": "The corresponding central panel has a horizontal movement arrow along the frame in plan."
+          },
+          "opening_direction": {
+            "value": "Slides left toward the left end panel, as drawn in plan",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0029"
+            ],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0030"
+            ],
+            "note": "One continuous glazed infill is shown within this sash, without an internal structural subdivision."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the center-left sash",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0030"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0020"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0020"
+        },
+        {
+          "position_hint": {
+            "value": "Center-right in exterior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0030"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0029",
+              "covered-0030"
+            ],
+            "note": "The corresponding central panel has a horizontal movement arrow along the frame in plan."
+          },
+          "opening_direction": {
+            "value": "Slides right toward the right end panel, as drawn in plan",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0029"
+            ],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0030"
+            ],
+            "note": "One continuous glazed infill is shown within this sash, without an internal structural subdivision."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the center-right sash",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0030"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0021"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0021"
+        },
+        {
+          "position_hint": {
+            "value": "Right end in exterior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0030"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "FIXED",
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0029",
+              "covered-0030"
+            ],
+            "note": "The end panel has a circular plan symbol rather than a movement arrow, contrasting with the moving central panels."
+          },
+          "opening_direction": {
+            "value": null,
+            "resolution": "UNKNOWN",
+            "evidence_candidate_ids": [],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0030"
+            ],
+            "note": "One continuous glazed infill is shown within this panel frame, without an internal structural subdivision."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the right end panel",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0030"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0022"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0022"
+        }
+      ],
+      "notes": [
+        "Dimension annotations are present, but their units are not unambiguously established by the supplied documentary evidence; no conversion to millimetres has been made.",
+        "Plan, elevation and section are treated as complementary views of this design, not as separate physical instances."
+      ],
+      "technical_structure_id": "technical-structure-0010",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "location",
+        "quantity",
+        "dimensions.width_mm",
+        "dimensions.height_mm",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].opening_direction",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].glass_specification",
+        "modules[1].dimensions.width_mm",
+        "modules[1].dimensions.height_mm",
+        "modules[1].glass_panes[0].dimensions.width_mm",
+        "modules[1].glass_panes[0].dimensions.height_mm",
+        "modules[1].glass_panes[0].glass_specification",
+        "modules[2].dimensions.width_mm",
+        "modules[2].dimensions.height_mm",
+        "modules[2].glass_panes[0].dimensions.width_mm",
+        "modules[2].glass_panes[0].dimensions.height_mm",
+        "modules[2].glass_panes[0].glass_specification",
+        "modules[3].dimensions.width_mm",
+        "modules[3].dimensions.height_mm",
+        "modules[3].opening_direction",
+        "modules[3].glass_panes[0].dimensions.width_mm",
+        "modules[3].glass_panes[0].dimensions.height_mm",
+        "modules[3].glass_panes[0].glass_specification"
+      ]
+    },
+    {
+      "identity_id": "identity-0011",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0033"
+        ],
+        "note": "The elevation unambiguously depicts framed glazing."
+      },
+      "reference": {
+        "value": "V-11",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0034"
+        ],
+        "note": "The reference is shown beneath the associated section."
+      },
+      "name": {
+        "value": "Three-panel glazed sliding door",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0032",
+          "covered-0033",
+          "covered-0034"
+        ],
+        "note": "The full-height assembly has one fixed panel and two sliding panels, with a recessed floor track."
+      },
+      "category": {
+        "value": "Glazed door",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0033",
+          "covered-0034"
+        ],
+        "note": "The full-height glazing and floor-level sliding track support classification as a glazed door."
+      },
+      "location": {
+        "value": null,
+        "resolution": "UNKNOWN",
+        "evidence_candidate_ids": [],
+        "note": null
+      },
+      "quantity": {
+        "value": 1,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0033"
+        ],
+        "note": "The V-11 schedule beneath this elevation in the full-page context lists a quantity of 1."
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "An overall width dimension is provided, but its unit is not explicitly established in the supplied evidence."
+        },
+        "height_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "An overall height dimension is provided, but its unit is not explicitly established in the supplied evidence."
+        }
+      },
+      "module_count": {
+        "value": 3,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0032",
+          "covered-0033"
+        ],
+        "note": "Three separately framed functional panels are shown consistently in plan and elevation."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Left panel in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0033"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "FIXED",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0032",
+              "covered-0033"
+            ],
+            "note": "The fixed-panel symbol appears on the left panel in both views."
+          },
+          "opening_direction": {
+            "value": null,
+            "resolution": "UNKNOWN",
+            "evidence_candidate_ids": [],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0033"
+            ],
+            "note": "The panel contains one continuous glazed infill with no visible internal pane divisions."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the left fixed frame",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0033"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0023"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0023"
+        },
+        {
+          "position_hint": {
+            "value": "Middle panel in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0033"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0032",
+              "covered-0033"
+            ],
+            "note": "Horizontal movement arrows and offset tracks indicate sliding operation."
+          },
+          "opening_direction": {
+            "value": "Leftward as shown in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0033"
+            ],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0033"
+            ],
+            "note": "The sliding frame contains one continuous glazed infill without internal pane divisions."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the middle sliding frame",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0033"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0024"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0024"
+        },
+        {
+          "position_hint": {
+            "value": "Right panel in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0033"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0032",
+              "covered-0033"
+            ],
+            "note": "Horizontal movement arrows and offset tracks indicate sliding operation."
+          },
+          "opening_direction": {
+            "value": "Leftward as shown in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0033"
+            ],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0033"
+            ],
+            "note": "The sliding frame contains one continuous glazed infill without internal pane divisions."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the right sliding frame",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0033"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0025"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0025"
+        }
+      ],
+      "notes": [],
+      "technical_structure_id": "technical-structure-0011",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "location",
+        "dimensions.width_mm",
+        "dimensions.height_mm",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].opening_direction",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].glass_specification",
+        "modules[1].dimensions.width_mm",
+        "modules[1].dimensions.height_mm",
+        "modules[1].glass_panes[0].dimensions.width_mm",
+        "modules[1].glass_panes[0].dimensions.height_mm",
+        "modules[1].glass_panes[0].glass_specification",
+        "modules[2].dimensions.width_mm",
+        "modules[2].dimensions.height_mm",
+        "modules[2].glass_panes[0].dimensions.width_mm",
+        "modules[2].glass_panes[0].dimensions.height_mm",
+        "modules[2].glass_panes[0].glass_specification"
+      ]
+    },
+    {
+      "identity_id": "identity-0012",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0036"
+        ],
+        "note": "The elevation shows two framed glazed leaves with glazing marks."
+      },
+      "reference": {
+        "value": "V-12",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0035",
+          "covered-0037"
+        ],
+        "note": null
+      },
+      "name": {
+        "value": "Two-leaf glazed sliding door",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0035",
+          "covered-0036",
+          "covered-0037"
+        ],
+        "note": "Derived from the two glazed leaves, horizontal movement arrows and floor-level sliding arrangement."
+      },
+      "category": {
+        "value": "Glazed sliding door",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0036",
+          "covered-0037"
+        ],
+        "note": "The elevation and floor-level section indicate a full-height glazed sliding door."
+      },
+      "location": {
+        "value": null,
+        "resolution": "UNKNOWN",
+        "evidence_candidate_ids": [],
+        "note": null
+      },
+      "quantity": {
+        "value": 1,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0036"
+        ],
+        "note": "The V-12 schedule beneath this elevation on the full prepared page lists one in the quantity column."
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "An overall width dimension is supplied, but its unit is not explicitly established in the supplied evidence."
+        },
+        "height_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "An overall height dimension is supplied, but its unit is not explicitly established in the supplied evidence."
+        }
+      },
+      "module_count": {
+        "value": 2,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0035",
+          "covered-0036"
+        ],
+        "note": "Two separately framed leaves are shown, each with its own sliding arrow."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Left leaf in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0036"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0035",
+              "covered-0036"
+            ],
+            "note": "Horizontal movement arrows indicate sliding operation."
+          },
+          "opening_direction": {
+            "value": "To the right as viewed in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0036"
+            ],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0036"
+            ],
+            "note": "One continuous glazed infill is shown within this leaf, without intermediate pane divisions."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Glazed infill within the left leaf",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0036"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0026"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0026"
+        },
+        {
+          "position_hint": {
+            "value": "Right leaf in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0036"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0035",
+              "covered-0036"
+            ],
+            "note": "Horizontal movement arrows indicate sliding operation."
+          },
+          "opening_direction": {
+            "value": "To the left as viewed in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0036"
+            ],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0036"
+            ],
+            "note": "One continuous glazed infill is shown within this leaf, without intermediate pane divisions."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Glazed infill within the right leaf",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0036"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0027"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0027"
+        }
+      ],
+      "notes": [],
+      "technical_structure_id": "technical-structure-0012",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "location",
+        "dimensions.width_mm",
+        "dimensions.height_mm",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].glass_specification",
+        "modules[1].dimensions.width_mm",
+        "modules[1].dimensions.height_mm",
+        "modules[1].glass_panes[0].dimensions.width_mm",
+        "modules[1].glass_panes[0].dimensions.height_mm",
+        "modules[1].glass_panes[0].glass_specification"
+      ]
+    },
+    {
+      "identity_id": "identity-0013",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0038",
+          "covered-0039",
+          "covered-0040"
+        ],
+        "note": "The coordinated plan, elevation and section depict a framed, glazed sliding window above a solid wall."
+      },
+      "reference": {
+        "value": "V-13",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0038",
+          "covered-0039",
+          "covered-0040"
+        ],
+        "note": "The full-page detail containing these three views is labeled V-13."
+      },
+      "name": {
+        "value": "Two-leaf sliding window",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0038",
+          "covered-0039"
+        ],
+        "note": "Two framed leaves and opposing horizontal movement arrows support this descriptive name."
+      },
+      "category": {
+        "value": "Window",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0039",
+          "covered-0040"
+        ],
+        "note": "The elevation and section show a low opening supported above a solid lower wall."
+      },
+      "location": {
+        "value": null,
+        "resolution": "UNKNOWN",
+        "evidence_candidate_ids": [],
+        "note": null
+      },
+      "quantity": {
+        "value": 1,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0039"
+        ],
+        "note": "The associated V-13 schedule on the full page lists 1 in its quantity column."
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "The drawing provides a width dimension, but its documentary unit is not unambiguously established in the supplied evidence."
+        },
+        "height_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "The section provides an opening-height dimension, but its documentary unit is not unambiguously established in the supplied evidence."
+        }
+      },
+      "module_count": {
+        "value": 2,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0038",
+          "covered-0039"
+        ],
+        "note": "Two separately framed leaves have individual sliding arrows."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Left leaf in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0039"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0038",
+              "covered-0039"
+            ],
+            "note": "Horizontal movement arrows indicate sliding operation."
+          },
+          "opening_direction": {
+            "value": "To the right as viewed from the interior",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0039"
+            ],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0039"
+            ],
+            "note": "The leaf contains one continuous glazed infill bounded by its frame, with no supported internal glass division."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the left sliding leaf",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0039"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0028"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0028"
+        },
+        {
+          "position_hint": {
+            "value": "Right leaf in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0039"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0038",
+              "covered-0039"
+            ],
+            "note": "Horizontal movement arrows indicate sliding operation."
+          },
+          "opening_direction": {
+            "value": "To the left as viewed from the interior",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0039"
+            ],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0039"
+            ],
+            "note": "The leaf contains one continuous glazed infill bounded by its frame, with no supported internal glass division."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the right sliding leaf",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0039"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0029"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0029"
+        }
+      ],
+      "notes": [
+        "The three candidates depict complementary views of the same design, not separate physical instances.",
+        "The solid lower wall shown in section is not included as a window module."
+      ],
+      "technical_structure_id": "technical-structure-0013",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "location",
+        "dimensions.width_mm",
+        "dimensions.height_mm",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].glass_specification",
+        "modules[1].dimensions.width_mm",
+        "modules[1].dimensions.height_mm",
+        "modules[1].glass_panes[0].dimensions.width_mm",
+        "modules[1].glass_panes[0].dimensions.height_mm",
+        "modules[1].glass_panes[0].glass_specification"
+      ]
+    },
+    {
+      "identity_id": "identity-0014",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0042",
+          "covered-0043"
+        ],
+        "note": "The elevation and corresponding section show framed glazing."
+      },
+      "reference": {
+        "value": "V-14",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0042"
+        ],
+        "note": "The full-page detail containing this elevation is identified as V-14."
+      },
+      "name": {
+        "value": "Two-leaf sliding glazed door",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0041",
+          "covered-0042"
+        ],
+        "note": "Two full-height framed glazed leaves correspond to parallel tracks and opposing sliding arrows in plan."
+      },
+      "category": {
+        "value": "Glazed door",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0041",
+          "covered-0042",
+          "covered-0043"
+        ],
+        "note": "The floor-level section, full-height elevation and sliding plan geometry indicate a glazed door assembly."
+      },
+      "location": {
+        "value": null,
+        "resolution": "UNKNOWN",
+        "evidence_candidate_ids": [],
+        "note": null
+      },
+      "quantity": {
+        "value": 1,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0042"
+        ],
+        "note": "The schedule beneath this detail on the full page lists one unit."
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "The overall width dimension is present, but its unit is not established by the supplied evidence."
+        },
+        "height_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "The overall height dimension is present, but its unit is not established by the supplied evidence."
+        }
+      },
+      "module_count": {
+        "value": 2,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0041",
+          "covered-0042"
+        ],
+        "note": "The elevation shows two separately framed leaves, corresponding to the two sliding elements in plan."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Left leaf in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0042"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0041",
+              "covered-0042"
+            ],
+            "note": "The corresponding plan shows a sliding track and movement arrow."
+          },
+          "opening_direction": {
+            "value": "Slides right toward the opposite leaf",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0041"
+            ],
+            "note": "The arrow above the left portion of the plan points right."
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0042"
+            ],
+            "note": "One uninterrupted glazed field is bounded by the leaf frame, with no visible intermediate glazing divisions."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the left leaf frame",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0042"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0030"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0030"
+        },
+        {
+          "position_hint": {
+            "value": "Right leaf in the interior elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0042"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "SLIDING",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0041",
+              "covered-0042"
+            ],
+            "note": "The corresponding plan shows a sliding track and movement arrow."
+          },
+          "opening_direction": {
+            "value": "Slides left toward the opposite leaf",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0041"
+            ],
+            "note": "The arrow above the right portion of the plan points left."
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0042"
+            ],
+            "note": "One uninterrupted glazed field is bounded by the leaf frame, with no visible intermediate glazing divisions."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the right leaf frame",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0042"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0031"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0031"
+        }
+      ],
+      "notes": [
+        "The plan, interior elevation and vertical section represent the same assembly, not additional physical instances."
+      ],
+      "technical_structure_id": "technical-structure-0014",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "location",
+        "dimensions.width_mm",
+        "dimensions.height_mm",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].glass_specification",
+        "modules[1].dimensions.width_mm",
+        "modules[1].dimensions.height_mm",
+        "modules[1].glass_panes[0].dimensions.width_mm",
+        "modules[1].glass_panes[0].dimensions.height_mm",
+        "modules[1].glass_panes[0].glass_specification"
+      ]
+    },
+    {
+      "identity_id": "identity-0015",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0045"
+        ],
+        "note": "The elevation depicts a circular framed glazed opening."
+      },
+      "reference": {
+        "value": "V-15",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0044",
+          "covered-0045",
+          "covered-0046"
+        ],
+        "note": "The associated drawing group is identified as V-15 on the full page."
+      },
+      "name": {
+        "value": "Circular two-leaf glazed window",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0044",
+          "covered-0045"
+        ],
+        "note": "Descriptive name derived from the circular elevation, two framed leaves and plan opening geometry."
+      },
+      "category": {
+        "value": "Window",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0044",
+          "covered-0045",
+          "covered-0046"
+        ],
+        "note": "The circular glazed assembly and its placement above the floor in section indicate a window."
+      },
+      "location": {
+        "value": null,
+        "resolution": "UNKNOWN",
+        "evidence_candidate_ids": [],
+        "note": null
+      },
+      "quantity": {
+        "value": 1,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0045"
+        ],
+        "note": "The schedule beneath this candidate's elevation on the full page indicates one unit."
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "Dimension units are not unambiguously established in the supplied evidence."
+        },
+        "height_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "Dimension units are not unambiguously established in the supplied evidence."
+        }
+      },
+      "module_count": {
+        "value": 2,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0044",
+          "covered-0045"
+        ],
+        "note": "Two separately framed semicircular leaves are shown, with corresponding opening arcs in plan."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Left half in the supplied elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0045"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "HINGED",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0044",
+              "covered-0045"
+            ],
+            "note": "Plan swing geometry indicates a hinged leaf."
+          },
+          "opening_direction": {
+            "value": "Outward toward the exterior",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0044"
+            ],
+            "note": "The swing arc lies on the exterior side of the plan."
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0045"
+            ],
+            "note": "One continuous glazed field is enclosed by this leaf's frame, without internal pane divisions."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Semicircular glazing within the left leaf",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0045"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0032"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0032"
+        },
+        {
+          "position_hint": {
+            "value": "Right half in the supplied elevation",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0045"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "HINGED",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0044",
+              "covered-0045"
+            ],
+            "note": "Plan swing geometry indicates a hinged leaf."
+          },
+          "opening_direction": {
+            "value": "Outward toward the exterior",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0044"
+            ],
+            "note": "The swing arc lies on the exterior side of the plan."
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0045"
+            ],
+            "note": "One continuous glazed field is enclosed by this leaf's frame, without internal pane divisions."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Semicircular glazing within the right leaf",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0045"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0033"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0033"
+        }
+      ],
+      "notes": [],
+      "technical_structure_id": "technical-structure-0015",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "location",
+        "dimensions.width_mm",
+        "dimensions.height_mm",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].glass_specification",
+        "modules[1].dimensions.width_mm",
+        "modules[1].dimensions.height_mm",
+        "modules[1].glass_panes[0].dimensions.width_mm",
+        "modules[1].glass_panes[0].dimensions.height_mm",
+        "modules[1].glass_panes[0].glass_specification"
+      ]
+    },
+    {
+      "identity_id": "identity-0016",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0047",
+          "covered-0048"
+        ],
+        "note": "The framed, diagonally marked infill in elevation and corresponding thin assembly in plan indicate glazing."
+      },
+      "reference": {
+        "value": "V-16",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0047",
+          "covered-0048"
+        ],
+        "note": "The enclosing detail on the full page identifies these plan and elevation views as V-16."
+      },
+      "name": {
+        "value": "Fixed glazed window",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0047",
+          "covered-0048"
+        ],
+        "note": "The glazing representation and fixed operation indicated in the associated full-page schedule support this descriptive name."
+      },
+      "category": {
+        "value": "Window",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0048"
+        ],
+        "note": "The framed glazed elevation and its installation context indicate a window."
+      },
+      "location": {
+        "value": null,
+        "resolution": "UNKNOWN",
+        "evidence_candidate_ids": [],
+        "note": null
+      },
+      "quantity": {
+        "value": 1,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0048"
+        ],
+        "note": "The V-16 schedule beneath this elevation on the full page indicates a quantity of one."
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "The associated native dimension lacks an explicit unit establishing conversion to millimetres."
+        },
+        "height_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "The associated native dimension lacks an explicit unit establishing conversion to millimetres."
+        }
+      },
+      "module_count": {
+        "value": 1,
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0047",
+          "covered-0048"
+        ],
+        "note": "The corresponding plan and elevation show one continuous framed field without intermediate functional divisions."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Entire framed opening",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0048"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "FIXED",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0048"
+            ],
+            "note": "Fixed operation is indicated in the associated V-16 schedule beneath the elevation on the full page."
+          },
+          "opening_direction": {
+            "value": null,
+            "resolution": "UNKNOWN",
+            "evidence_candidate_ids": [],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0047",
+              "covered-0048"
+            ],
+            "note": "The elevation depicts a continuous glazed field with no visible pane joints or intermediate profiles; the plan supports an uninterrupted assembly."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the perimeter frame",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0048"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0034"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0034"
+        }
+      ],
+      "notes": [],
+      "technical_structure_id": "technical-structure-0016",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "location",
+        "dimensions.width_mm",
+        "dimensions.height_mm",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].opening_direction",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].glass_specification"
+      ]
+    },
+    {
+      "identity_id": "identity-0017",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0050"
+        ],
+        "note": "The elevation unambiguously depicts framed glazing."
+      },
+      "reference": {
+        "value": "V-17",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0049",
+          "covered-0050"
+        ],
+        "note": "The full-page reference labels identify the corresponding plan and elevation."
+      },
+      "name": {
+        "value": "Fixed framed glazed opening",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0049",
+          "covered-0050"
+        ],
+        "note": "Descriptive name derived from the framed glazing and fixed configuration."
+      },
+      "category": {
+        "value": "Window",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0049",
+          "covered-0050"
+        ],
+        "note": "The plan and elevated glazed opening support classification as a window."
+      },
+      "location": {
+        "value": null,
+        "resolution": "UNKNOWN",
+        "evidence_candidate_ids": [],
+        "note": null
+      },
+      "quantity": {
+        "value": 1,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0050"
+        ],
+        "note": "The associated V-17 schedule on the full page gives a quantity of one."
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "Associated dimension text is available, but its units are not explicitly established for conversion to millimetres."
+        },
+        "height_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "Associated dimension text is available, but its units are not explicitly established for conversion to millimetres."
+        }
+      },
+      "module_count": {
+        "value": 1,
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0049",
+          "covered-0050"
+        ],
+        "note": "The plan and elevation show one continuous framed unit without intermediate module boundaries."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Entire framed opening",
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0050"
+            ],
+            "note": "The single supported module occupies the complete elevation."
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "FIXED",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0050"
+            ],
+            "note": "The associated V-17 schedule on the full page identifies the system as fixed."
+          },
+          "opening_direction": {
+            "value": null,
+            "resolution": "UNKNOWN",
+            "evidence_candidate_ids": [],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0049",
+              "covered-0050"
+            ],
+            "note": "One uninterrupted glazed field is shown, with no observable mullions or physical glass joints."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Within the perimeter frame",
+                "resolution": "INFERRED",
+                "evidence_candidate_ids": [
+                  "covered-0050"
+                ],
+                "note": "The uninterrupted glazed field is enclosed by the perimeter frame."
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0035"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0035"
+        }
+      ],
+      "notes": [],
+      "technical_structure_id": "technical-structure-0017",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "location",
+        "dimensions.width_mm",
+        "dimensions.height_mm",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].opening_direction",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].glass_specification"
+      ]
+    },
+    {
+      "identity_id": "identity-0018",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0052"
+        ],
+        "note": "The elevation shows glazing; the associated V-18 schedule on the full page specifies glass."
+      },
+      "reference": {
+        "value": "V-18",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0051",
+          "covered-0052"
+        ],
+        "note": "Confirmed by the labels accompanying these views on the full page."
+      },
+      "name": {
+        "value": "Fixed glazed opening",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0052"
+        ],
+        "note": "The associated V-18 schedule identifies a fixed frame with five glass bodies."
+      },
+      "category": {
+        "value": "Fixed glazing",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0052"
+        ],
+        "note": "Supported by the fixed designation in the associated full-page schedule."
+      },
+      "location": {
+        "value": null,
+        "resolution": "UNKNOWN",
+        "evidence_candidate_ids": [],
+        "note": null
+      },
+      "quantity": {
+        "value": 1,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0052"
+        ],
+        "note": "The associated V-18 schedule on the full page lists quantity 1."
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": 7050.0,
+          "resolution": "EXPLICIT",
+          "evidence_candidate_ids": [
+            "covered-0051",
+            "covered-0052"
+          ],
+          "note": "The overall dimension is 7.05 m in the architectural dimensioning; normalized to 7050 mm."
+        },
+        "height_mm": {
+          "value": 1290.0,
+          "resolution": "EXPLICIT",
+          "evidence_candidate_ids": [
+            "covered-0052"
+          ],
+          "note": "The overall elevation height is 1.29 m; normalized to 1290 mm."
+        }
+      },
+      "module_count": {
+        "value": 1,
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0051",
+          "covered-0052"
+        ],
+        "note": "The continuous frame and associated schedule describing one fixed frame with five glass bodies support one functional fixed module containing five panes."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Entire opening",
+            "resolution": "INFERRED",
+            "evidence_candidate_ids": [
+              "covered-0051",
+              "covered-0052"
+            ],
+            "note": "The fixed framed assembly spans the complete opening in plan and elevation."
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "FIXED",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0052"
+            ],
+            "note": "The associated V-18 schedule on the full page identifies the system as fixed."
+          },
+          "opening_direction": {
+            "value": null,
+            "resolution": "UNKNOWN",
+            "evidence_candidate_ids": [],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 5,
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0052"
+            ],
+            "note": "The associated schedule specifies five glass bodies, corresponding to the five elevation divisions."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "First from left",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0052"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": "Tempered glass",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0052"
+                ],
+                "note": "The associated V-18 schedule specifies tempered glass for the five glass bodies."
+              },
+              "glass_pane_id": "glass-pane-0036"
+            },
+            {
+              "position_hint": {
+                "value": "Second from left",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0052"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": "Tempered glass",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0052"
+                ],
+                "note": "The associated V-18 schedule specifies tempered glass for the five glass bodies."
+              },
+              "glass_pane_id": "glass-pane-0037"
+            },
+            {
+              "position_hint": {
+                "value": "Center",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0052"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": "Tempered glass",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0052"
+                ],
+                "note": "The associated V-18 schedule specifies tempered glass for the five glass bodies."
+              },
+              "glass_pane_id": "glass-pane-0038"
+            },
+            {
+              "position_hint": {
+                "value": "Fourth from left",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0052"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": "Tempered glass",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0052"
+                ],
+                "note": "The associated V-18 schedule specifies tempered glass for the five glass bodies."
+              },
+              "glass_pane_id": "glass-pane-0039"
+            },
+            {
+              "position_hint": {
+                "value": "Rightmost",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0052"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": "Tempered glass",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0052"
+                ],
+                "note": "The associated V-18 schedule specifies tempered glass for the five glass bodies."
+              },
+              "glass_pane_id": "glass-pane-0040"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0036"
+        }
+      ],
+      "notes": [
+        "The repeated bay dimensions are not treated as finished glass cut sizes."
+      ],
+      "technical_structure_id": "technical-structure-0018",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "location",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].opening_direction",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[1].dimensions.width_mm",
+        "modules[0].glass_panes[1].dimensions.height_mm",
+        "modules[0].glass_panes[2].dimensions.width_mm",
+        "modules[0].glass_panes[2].dimensions.height_mm",
+        "modules[0].glass_panes[3].dimensions.width_mm",
+        "modules[0].glass_panes[3].dimensions.height_mm",
+        "modules[0].glass_panes[4].dimensions.width_mm",
+        "modules[0].glass_panes[4].dimensions.height_mm"
+      ]
+    },
+    {
+      "identity_id": "identity-0019",
+      "scope": {
+        "value": "GLASS_RELATED",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0054"
+        ],
+        "note": "The elevation shows framed glazing, corroborated by the associated schedule on the full page."
+      },
+      "reference": {
+        "value": "V-19",
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0053",
+          "covered-0054"
+        ],
+        "note": "The full-page detail containing these plan and elevation regions is labeled V-19."
+      },
+      "name": {
+        "value": "Fixed rectangular glazed opening",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0053",
+          "covered-0054"
+        ],
+        "note": "Descriptive name derived from the framed elevation and its associated fixed-system schedule."
+      },
+      "category": {
+        "value": "Fixed glazing",
+        "resolution": "INFERRED",
+        "evidence_candidate_ids": [
+          "covered-0054"
+        ],
+        "note": "The single glazed field and associated fixed-system schedule support this general category."
+      },
+      "location": {
+        "value": null,
+        "resolution": "UNKNOWN",
+        "evidence_candidate_ids": [],
+        "note": null
+      },
+      "quantity": {
+        "value": 2,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0054"
+        ],
+        "note": "The V-19 schedule below the corresponding elevation on the full page lists a quantity of 2."
+      },
+      "dimensions": {
+        "width_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "Dimension annotations are present, but their units are not explicitly established in the supplied evidence."
+        },
+        "height_mm": {
+          "value": null,
+          "resolution": "UNKNOWN",
+          "evidence_candidate_ids": [],
+          "note": "Dimension annotations are present, but their units are not explicitly established in the supplied evidence."
+        }
+      },
+      "module_count": {
+        "value": 1,
+        "resolution": "EXPLICIT",
+        "evidence_candidate_ids": [
+          "covered-0053",
+          "covered-0054"
+        ],
+        "note": "The plan and elevation show one continuous framed glazed field without intermediate module divisions."
+      },
+      "modules": [
+        {
+          "position_hint": {
+            "value": "Entire framed opening",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0054"
+            ],
+            "note": null
+          },
+          "dimensions": {
+            "width_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            },
+            "height_mm": {
+              "value": null,
+              "resolution": "UNKNOWN",
+              "evidence_candidate_ids": [],
+              "note": null
+            }
+          },
+          "function": {
+            "value": "FIXED",
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0054"
+            ],
+            "note": "The associated V-19 schedule on the full page identifies the system as fixed."
+          },
+          "opening_direction": {
+            "value": null,
+            "resolution": "UNKNOWN",
+            "evidence_candidate_ids": [],
+            "note": null
+          },
+          "glass_pane_count": {
+            "value": 1,
+            "resolution": "EXPLICIT",
+            "evidence_candidate_ids": [
+              "covered-0054"
+            ],
+            "note": "A single uninterrupted glazed field is shown within the perimeter frame."
+          },
+          "glass_panes": [
+            {
+              "position_hint": {
+                "value": "Central glazing within the perimeter frame",
+                "resolution": "EXPLICIT",
+                "evidence_candidate_ids": [
+                  "covered-0054"
+                ],
+                "note": null
+              },
+              "dimensions": {
+                "width_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                },
+                "height_mm": {
+                  "value": null,
+                  "resolution": "UNKNOWN",
+                  "evidence_candidate_ids": [],
+                  "note": null
+                }
+              },
+              "glass_specification": {
+                "value": null,
+                "resolution": "UNKNOWN",
+                "evidence_candidate_ids": [],
+                "note": null
+              },
+              "glass_pane_id": "glass-pane-0041"
+            }
+          ],
+          "decorative_elements": [],
+          "module_id": "module-0037"
+        }
+      ],
+      "notes": [],
+      "technical_structure_id": "technical-structure-0019",
+      "resolution_status": "PARTIAL",
+      "missing_fields": [
+        "location",
+        "dimensions.width_mm",
+        "dimensions.height_mm",
+        "modules[0].dimensions.width_mm",
+        "modules[0].dimensions.height_mm",
+        "modules[0].opening_direction",
+        "modules[0].glass_panes[0].dimensions.width_mm",
+        "modules[0].glass_panes[0].dimensions.height_mm",
+        "modules[0].glass_panes[0].glass_specification"
+      ]
+    }
+  ],
+  "unresolved_groups": [],
+  "resolved_identity_count": 19,
+  "unresolved_group_count": 0
+}

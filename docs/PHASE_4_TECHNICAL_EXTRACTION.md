@@ -1,8 +1,9 @@
-# Technical Extraction Foundation — 4A.1 y Contract hardening — 4A.2
+# Technical Extraction — Foundation 4A, OpenAI Extractor 4B
 
 Esta subfase define contratos internos, evidencia canónica, lineage y orquestación.
-No hay extractor real, OpenAI, prompts, OCR, Verification, Final Resolution, pricing,
-selección de sistemas comerciales ni integración con Backend. No hay CLI de extracción.
+4B implementa el adapter OpenAI del Protocol existente, sin cambiar contratos de
+4A. No hay OCR, Technical Audit, Verification, Final Resolution, pricing, selección
+de sistemas comerciales ni integración con Backend.
 
 ## Distinciones de dominio
 
@@ -39,7 +40,8 @@ nota de regla y sin evidencia, pero 4A.1 nunca aplica ese default automáticamen
 ## Propuestas y resultados
 
 - `TechnicalDimensions`: `width_mm`, `height_mm` como ResolvedPositiveNumber.
-  Milímetros son la unidad canónica; todavía no hay parser ni conversiones.
+  Milímetros son la unidad canónica; no hay parser ni conversor local de unidades.
+  4B instruye al modelo para normalizar unidades documentales explícitas con nota.
 - `ModuleFunction`: FIXED, SLIDING, PROJECTING, HINGED, FOLDING, PIVOT, LOUVER, OTHER.
   Función desconocida usa value null y resolution UNKNOWN, no enum UNKNOWN.
 - `GlassPaneProposal`: `position_hint`, `dimensions`, `glass_specification`.
@@ -106,14 +108,14 @@ documento, occurrence, página, NormalizedRegion, dimensiones y path del render.
 página, width_px, height_px, image_path, native_text_spans. Cada página relevante
 aparece una sola vez por Identity, identificada por documento/occurrence/página.
 
-La evidencia permite usar localización/crop y full-page/texto en 4B, sin crear
-ahora crops, thumbnails ni requests. Unresolved conserva ID, miembros y motivo,
+La evidencia permite usar localización/crop y full-page/texto en 4B. El builder no
+genera imágenes ni requests. Unresolved conserva ID, miembros y motivo,
 pero no crea targets ni estructuras. Su existencia no bloquea un Gate READY.
 
 ## Servicio y persistencia
 
 `TechnicalExtractor.extract(TechnicalExtractionInput) -> TechnicalExtractionProposal`
-es un Protocol sin implementación real. El servicio pasa copia profunda al extractor
+es el Protocol implementado en 4B por OpenAITechnicalExtractor. El servicio pasa copia profunda al extractor
 y exige exactamente una propuesta por Identity resuelta, sin omisiones, duplicados
 ni targets desconocidos. Cada ID de evidencia, incluso anidado, debe pertenecer
 a esa Identity. covered_candidate_id es evidencia interna, no contrato público final
@@ -149,21 +151,231 @@ Publica `runtime/technical/<batch_id>/technical_extraction.json` mediante stagin
 y reemplazo atómico solo tras éxito completo. Ante excepción limpia staging y
 conserva resultado previo. No modifica artefactos de fases anteriores.
 
-## Compatibilidad y pendiente para 4B
+## Compatibilidad
 
 Scope y module_count son campos obligatorios, sin defaults. Propuestas o resultados
 técnicos anteriores que no los incluyan son incompatibles con el contrato actual;
 no hay migración ni inferencia silenciosa. TechnicalExtractionInput, lineage e
 Identity/Discovery permanecen sin cambios.
 
-Implementar el extractor multimodal y definir cómo combinar contexto full-page,
-crops y texto para proponer campos soportados por evidencia. Todavía no se
-interpreta ningún documento real ni se aplica quantity=1 automáticamente.
+## OpenAI Multimodal Technical Extractor — 4B
+
+`OpenAITechnicalExtractor.extract(TechnicalExtractionInput)` procesa identities en
+orden y realiza una sola solicitud Responses por Identity. Cada salida usa
+exactamente TechnicalStructureProposal, no un modelo paralelo, y debe devolver el
+identity_id esperado. Agrega las propuestas en TechnicalExtractionProposal.
+No asigna IDs técnicos ni calcula status/missing_fields; eso sigue en el servicio.
+
+Config: `OPENAI_API_KEY` obligatorio, `SNG_TECHNICAL_MODEL` independiente, default
+`gpt-6.1-sol`, sin fallback. SDK oficial `responses.parse(text_format=...)`,
+`store=False`, timeout 180 segundos y cero retries automáticos. Se usa el patrón
+de [salida estructurada de OpenAI Docs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses).
+
+### Request por Identity
+
+JSON compacto y sin truncamiento:
+
+- `identity`: identity_id, reference_hint, description, candidate_ids.
+- `candidates`: campos canónicos de IdentityCandidateInput excepto image_path;
+  incluye origen, ID fuente, referencia, descripción, relevancia, documento,
+  occurrence, página, región y dimensiones del render.
+
+Después de los crops individuales, por cada página se envían metadata de contexto
+(documento, occurrence, página, render_size, context_bbox y local_native_spans),
+PNG contextual, metadata annotation_context con sus spans y PNG de anotaciones,
+WEBP completo y metadata full_native_spans. Los spans usan
+`[text,[x0,y0,x1,y1]]`, sin redondear bbox ni perder spans de la vista canónica.
+
+No se envían batch/hash, otras identities, unresolved, filenames, original_name,
+paths locales ni metadata del proveedor. El texto documental sigue siendo evidencia
+no confiable; no se depura ni convierte en instrucciones.
+
+`visuals.py` reutiliza candidate_crop() de Identity (margen contextual canónico 5%).
+Cada crop conserva píxeles/aspect ratio, sin resize, dentro de un PNG con franja
+blanca superior de 32 px para el ID. No se dibuja encima de la evidencia. Cada
+imagen va precedida de metadata con kind, documento/occurrence/página y, para
+crops, covered_candidate_id. Los crops se envían en orden de candidatos.
+Los dos contextos agregados preceden a los bytes WEBP exactos de cada página relevante, una vez por
+documento/occurrence/página, con `detail=high` en todas las imágenes. Todo se
+genera/codifica en memoria, sin archivos intermedios.
+
+### Prompt y semántica
+
+El prompt en `technical/openai_extractor.py` pide una estructura para la Identity
+actual usando conjuntamente crops, full-page y spans. Mantiene los invariantes:
+
+- Scope no se deriva de haber resuelto Identity; admite NOT_GLASS_RELATED y lo
+  conserva. Si no hay composición de vidrio soportada, usa conteos UNKNOWN y
+  listas vacías, sin convertir fuera de alcance en cantidad/conteo cero.
+- EXPLICIT requiere evidencia documental inequívoca. INFERRED exige evidencia y
+  nota; UNKNOWN usa null/sin evidencia; CONFLICT conserva null y explica evidencia
+  incompatible. No se elige arbitrariamente ni se aplica default.
+- Una unidad inequívoca m/cm/mm puede normalizarse a mm como EXPLICIT con nota,
+  p.ej. 3.00 m → 3000 mm. Es una instrucción al proveedor, no un parser/conversor
+  local ni una verificación de la aritmética del modelo. No estima escala,
+  píxeles→mm ni proporciones y no propaga dimensiones entre Structure/Module/Pane.
+- Quantity no se obtiene contando vistas/crops/páginas/módulos/paños. INFERRED
+  requiere instancias físicas inequívocas, excluyendo vistas alternativas y
+  repeticiones. Ante duda usa UNKNOWN; no default quantity=1.
+- Módulos funcionales, paños físicos y celdas decorativas permanecen separados.
+  Conteos conocidos deben corresponder a listas completas; detalles pueden ser
+  UNKNOWN. Conteos inciertos permiten elementos parciales soportados.
+- reference_hint no se transforma automáticamente en EXPLICIT. Función y apertura
+  requieren evidencia; especificaciones faltantes no se completan. Notes no sirve
+  para esconder campos técnicos ni eludir evidencia.
+
+El adapter recorre todos los ResolvedField anidados y rechaza DEFAULTED con
+UnexpectedTechnicalDefaultError, sin reemplazarlo por UNKNOWN. El contrato genérico
+lo conserva para futuras reglas determinísticas. El servicio comprueba que la
+evidencia pertenezca a la Identity, incluidos scope, conteos y campos anidados.
+
+### Presupuesto, errores y CLI
+
+Por Identity: máximo 24 candidatos, 8 páginas y 160.000 bytes de texto metadata
+UTF-8 (JSON principal, metadata de imágenes y spans locales/completos). Prompt estático e
+imágenes base64 no forman parte de ese límite textual. TechnicalContextBudgetExceeded
+falla antes de llamar al proveedor para esa Identity; nunca trunca ni divide.
+Una Identity previa puede haber completado su solicitud, pero no se publica nada
+si falla cualquier Identity posterior. No hay retries ni fallback.
+
+Errores separados: TechnicalConfigurationError, TechnicalAPIError,
+InvalidTechnicalResponseError, TechnicalContextBudgetExceeded y
+UnexpectedTechnicalDefaultError. Refusal, incompleta, malformed, schema/conteos
+inválidos o identity_id distinto fallan explícitamente. Errores públicos no incluyen
+claves, cuerpos completos ni base64; no hay reparaciones o respuesta vacía de fallback.
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+$env:SNG_TECHNICAL_MODEL = "gpt-6.1-sol"
+python -m sng_consulter.technical "BATCH_ID"
+```
+
+Configurar antes OPENAI_API_KEY por el mecanismo local habitual. El comando llama
+al builder, instancia el adapter, ejecuta el servicio y cierra el cliente en éxito
+o error. No ejecuta Preparation, Discovery, Coverage, Identity, Audit ni Gate.
+El servicio sigue siendo el único publicador de technical_extraction.json tras
+validar todas las identities. No se persisten prompts, requests, responses, crops,
+contact sheets, base64 ni metadata del proveedor. Se preservan artefactos anteriores.
+
+## Pendiente de validación real del hardening de schedules
+
+Evaluar legibilidad de crops/full-page, asociaciones de cotas, unidad normalizada,
+quantity, composición, scope, calidad de evidencia, costos y latencia con documentos
+reales. Los tests simulan exclusivamente HTTP, no demuestran precisión semántica.
 Las consistencias de conteos descritas son validaciones de contrato, no Verification.
 No hay verificación técnica adicional, correcciones automáticas,
 selección comercial ni contrato público Backend. Persistencia sin locks ni
 recuperación automática ante cierre abrupto; los hashes identifican snapshots
 consumidos y futuros consumidores deberán comprobarlos.
-En 4B también deberá prohibirse que el proveedor emita DEFAULTED; ese control no
-se adelanta aquí. No se ha demostrado otra carencia contractual bloqueante para
-implementar el adapter, sin sustituir la futura validación con evidencia real.
+No se introducen chunking, retries adaptativos, Technical Audit o verificación global.
+
+
+## 4B.1 — Evidencia dimensional
+
+Por Identity/página se agrega un PNG contextual en memoria: unión de las regiones
+convertidas con `normalized_region_to_render_bbox()`, expandida por 6% del ancho y
+alto totales a cada lado, floor/ceil y clipping a página. Solo participan candidatos
+de esa Identity y del mismo documento/occurrence/página. No cambia `candidate_crop()`.
+Los `local_native_spans` se seleccionan por intersección de área positiva con ese
+contexto; conservan texto exacto y bbox visual sin redondeo ni interpretación numérica.
+No se agrega un clasificador de spans numéricos.
+
+Orden: instrucciones, Identity/candidates, crops individuales; luego por página
+metadata/spans locales, contexto PNG high, annotation_context/PNG high de 4B.2,
+página WEBP original high y spans completos.
+No se envían paths ni se guardan crops. Se mantienen presupuestos de 24 candidatos,
+8 páginas y 160.000 bytes textuales, sin truncar evidencia; el contexto agrega una
+imagen por página y puede aumentar el costo de entrada visual.
+
+Unidades explícitas se normalizan a mm como EXPLICIT con nota. Una convención
+implícita puede inferirse de múltiples cotas coherentes y su contexto arquitectónico:
+el campo dimensional completo queda INFERRED con evidencia y nota de inferencia y
+normalización. Un número aislado no establece metros; ambigüedad real queda UNKNOWN.
+La convención se aplica consistentemente dentro del mismo contexto, no entre detalles
+sin relación. Nunca se estima por píxeles, proporciones, escala gráfica ni tamaño de página.
+
+Structure prioriza cotas totales asociadas y vistas coherentes; Module necesita cotas
+individuales, sin copiar/dividir totales. GlassPane necesita tamaño físico del vidrio
+terminado: vano/frame/módulo no lo demuestra. Cada eje es independiente. Un diámetro
+explícito puede representar ambos ejes con nota. Contexto vecino no autoriza tomar sus cotas.
+`location` es ubicación del elemento dentro del proyecto, no ciudad, dirección, lote
+ni ubicación general del title block; si falta ubicación del elemento, UNKNOWN.
+
+La validación SDK simulada comprueba contratos y evidencia enviada, no la capacidad
+del modelo de asociar cotas o inferir unidades. La prueba manual posterior a 4B.1
+reportada por el usuario validó satisfactoriamente dimensiones. Falta validar la
+mejora de schedules de 4B.2 y evaluar legibilidad, precisión, costo y latencia. No se
+introducen Technical Audit, nuevas llamadas, retries ni conversión dimensional local.
+
+## 4B.2 — Associated Schedule Evidence Hardening
+
+`visuals.py` calcula una sola unión de bbox mediante el helper canónico por
+Identity/documento/occurrence/página. De esa unión salen ambos contextos: el de
+4B.1 conserva 6% por lado; Associated Annotation Context usa 8% del ancho de página
+a izquierda/derecha, 6% de la altura arriba y 12% abajo, para incluir captions y
+tablas cercanas frecuentemente situadas debajo. Ambos usan floor/ceil y clipping;
+no se buscan referencias, palabras ni posiciones de documentos conocidos.
+
+Cada nuevo PNG se genera en memoria, sin resize ni persistencia. Su metadata incluye
+`annotation_context: {context_bbox, local_native_spans}`. Los spans intersectan el
+crop con área positiva y conservan texto/bbox visual exactos: sin OCR, regex semántica
+ni interpretación numérica. Se mantienen crops individuales, Identity Page Context,
+full WEBP y spans completos, todos los contextos/imágenes con `detail=high`.
+
+Antes de devolver la propuesta, el prompt exige inspeccionar schedules/tablas/captions
+asociados para referencia, quantity, descripción de operación, cuerpos móviles/fijos,
+especificación de vidrio/material y nombre/categoría explícitos. El crop puede incluir
+vecinos: exige relación suficiente mediante proximidad, referencia coincidente,
+layout, caption, agrupación de vistas o asociación visual; aparecer en el crop no basta.
+Ilegibilidad o asociación ambigua permiten UNKNOWN, sin completar por conocimiento externo.
+
+Un schedule legible e inequívocamente asociado es evidencia EXPLICIT. Una especificación
+aplicable a toda la estructura/todos sus cuerpos de vidrio puede repetirse en los
+GlassPane correspondientes como EXPLICIT, con evidencia de esa Identity y nota que
+explique la aplicación al conjunto. No se propaga si distingue panes/cuerpos; specs
+distintas se representan por pane, y conflictos no resueltos como CONFLICT. No se
+inventa espesor, color ni tratamiento ausente.
+
+Se revisa la columna de cantidad antes de UNKNOWN, manteniendo las reglas existentes.
+SISTEMA o equivalente es descripción documental, sin selección de sistemas comerciales:
+solo aporta campos soportados. La geometría conserva su función para composición;
+cuerpos de vidrio no equivalen a módulos, ni el texto sustituye conceptos geométricos
+distintos. Contratos, dimensiones, location, scope y rechazo de DEFAULTED no cambian.
+
+Una request por Identity, mismos modelos/configuración y presupuestos: 24 candidatos,
+8 páginas, 160.000 bytes de metadata incluyendo annotation_context/spans. Ahora son
+hasta 24 crops individuales + 24 imágenes de página/contextos (48 en total) por Identity.
+La imagen extra aumenta costo visual y su metadata cuenta dentro del límite textual;
+no se trunca, no hay segunda llamada, chunking ni retries. La suite prueba los límites,
+empaquetado y respuestas HTTP simuladas, no la interpretación real de schedules.
+
+## 4B.3 — Schedule Attribute Attribution Hardening
+
+Se agregan instrucciones al prompt existente, sin cambiar contratos, estrategia
+visual, imágenes, budgets, requests ni validación/postprocesamiento del adapter.
+Cada atributo de schedule, descripción, caption o nota debe vincularse al componente
+descrito: vidrio, frame/profile, sill, threshold, hardware, wall, seal/gasket,
+decoración u otro. Compartir frase/fila no basta para transferir sus propiedades.
+
+Antes de usar cifra/unidad debe determinarse qué modifica; solo entonces es válida
+su normalización. Dimensiones/especificaciones de otros componentes no pueden
+convertirse en espesor/material de vidrio. Las reglas dimensionales 4B.1 se conservan.
+glass_specification requiere evidencia que describa inequívocamente al vidrio;
+existencia de glazing no es una especificación. Tipo y espesor son distintos: un
+tipo documental no autoriza inventar espesor, ni tamaño/operación/conteo/práctica
+constructiva lo establecen. Ante atribución ambigua o plausible propietario distinto,
+el prompt pide UNKNOWN.
+
+La revisión interna pide comprobar la declaración exacta que soporta cada
+glass_specification no nula, su asociación al vidrio y posibles propietarios
+alternativos. No agrega campos de checklist al contrato. Toda specification EXPLICIT
+debe incluir note con el soporte documental real y su alcance, sin atribuir al
+documento frases ausentes. Se conserva propagación de 4B.2 únicamente si la declaración
+de vidrio aplica inequívocamente al conjunto; nunca se propagan atributos de frame/sill.
+
+Tests HTTP simulados cubren tipo sin espesor, espesor explícito, propiedades de otros
+componentes, coexistencia en una fila, múltiples panes y atribución ambigua. Comprueban
+prompt, evidencia enviada, conservación de respuestas y ausencia de escrituras;
+no demuestran razonamiento del modelo. Sigue pendiente repetir validación manual
+real/benchmark para evaluar atribución y regresión dimensional. No se ha ejecutado
+benchmark ni llamadas reales a OpenAI en esta subfase.
