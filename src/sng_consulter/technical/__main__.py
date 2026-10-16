@@ -16,7 +16,35 @@ from .openai_extractor import (
 from .service import TechnicalExtractionService, InvalidTechnicalProposalError
 
 
+def _audit_main(argv: list[str]) -> int:
+    from .audit.service import TechnicalAuditService, InvalidTechnicalAuditInputError, InvalidTechnicalAuditResponseError
+    from .audit.openai_auditor import (
+        OpenAITechnicalAuditor, TechnicalAuditConfigurationError, TechnicalAuditAPIError,
+        TechnicalAuditContextBudgetExceeded,
+    )
+    parser = argparse.ArgumentParser(description="Independently audit persisted Technical Extraction")
+    parser.add_argument("batch_id")
+    args = parser.parse_args(argv)
+    auditor = None
+    try:
+        auditor = OpenAITechnicalAuditor()
+        result = TechnicalAuditService(auditor).audit(args.batch_id)
+    except (InvalidTechnicalAuditInputError, InvalidTechnicalAuditResponseError, TechnicalAuditConfigurationError,
+            TechnicalAuditAPIError, TechnicalAuditContextBudgetExceeded, OSError) as exc:
+        print(f"{type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    finally:
+        if auditor is not None:
+            auditor.close()
+    print(f"Technical Audit completed: {result.structures_audited} structures audited, {result.issue_count} issues. "
+          f"Result: runtime/technical/{result.batch_id}/technical_audit.json")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == "audit":
+        return _audit_main(argv[1:])
     parser = argparse.ArgumentParser(description="Extract technical proposals from a persisted READY batch")
     parser.add_argument("batch_id")
     args = parser.parse_args(argv)

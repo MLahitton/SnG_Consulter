@@ -1,7 +1,7 @@
 ﻿# SnG Consulter
 
 Servicio de preparación documental para Steel & Glass. Fase 1 cerrada;
-estado actual: **4B.3 — Schedule Attribute Attribution Hardening**.
+estado actual: **4C.1 — Independent Technical Audit**.
 
 ## Discovery 2A.1 y 2A.2
 
@@ -366,7 +366,7 @@ impide publicar todo el batch y conserva el resultado previo. El adapter no escr
 artefactos: el servicio existente sigue publicando tras validar todas las propuestas.
 El CLI cierra el cliente ante éxito/error y nunca ejecuta fases anteriores.
 
-No existen Technical Audit, Verification ni Final Resolution. El empaquetado es
+No existen Technical Gate, Verification ni Final Resolution. El empaquetado es
 determinístico; la calidad y variabilidad del proveedor requieren prueba manual real.
 
 ## Preparación disponible
@@ -575,3 +575,24 @@ glass_specification EXPLICIT debe explicar su soporte documental y alcance en no
 solo puede propagarse si el texto la aplica inequívocamente a todos los panes.
 No cambia contratos, evidencia visual ni reglas dimensionales. Falta comprobar la
 atribución con el proveedor real; los tests sintéticos validan prompt y adapter.
+
+### Independent Technical Audit — 4C.1
+
+Technical Extraction propone; Technical Audit critica independientemente. Consume
+`runtime/technical/<batch_id>/technical_extraction.json` y reconstruye evidencia
+canónica vigente sin ejecutar fases anteriores. Valida contrato, lineage, IDs,
+targets, conteos, unresolved, evidencia y completitud antes de auditar.
+
+```powershell
+python -m sng_consulter.technical audit "BATCH_ID"
+```
+
+Usa `OPENAI_API_KEY`, modelo independiente `SNG_TECHNICAL_AUDIT_MODEL` (default
+`gpt-6.1-sol`), una request por estructura y prompt propio. Reutiliza los crops,
+contextos, páginas y spans existentes; no persiste imágenes ni respuestas del proveedor.
+Reporta problemas concretos mediante paths y candidatos de la Identity; UNKNOWN
+puede ser correcto y `issues=[]` es válido. No corrige ni vuelve a extraer.
+Publica atómicamente `technical_audit.json`, con SHA-256 de los bytes exactos del
+resultado auditado. Un fallo conserva el audit anterior. Límites por estructura:
+24 candidatos, 8 páginas, 220.000 bytes de metadata, sin truncar ni retries.
+No se implementa Technical Gate. Falta validación semántica con documentos reales.

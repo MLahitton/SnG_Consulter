@@ -2,7 +2,7 @@
 
 Esta subfase define contratos internos, evidencia canónica, lineage y orquestación.
 4B implementa el adapter OpenAI del Protocol existente, sin cambiar contratos de
-4A. No hay OCR, Technical Audit, Verification, Final Resolution, pricing, selección
+4A. 4C.1 agrega auditoría independiente. No hay OCR, Technical Gate, Verification, Final Resolution, pricing, selección
 de sistemas comerciales ni integración con Backend.
 
 ## Distinciones de dominio
@@ -267,7 +267,7 @@ No hay verificación técnica adicional, correcciones automáticas,
 selección comercial ni contrato público Backend. Persistencia sin locks ni
 recuperación automática ante cierre abrupto; los hashes identifican snapshots
 consumidos y futuros consumidores deberán comprobarlos.
-No se introducen chunking, retries adaptativos, Technical Audit o verificación global.
+No se introducen chunking, retries adaptativos, Technical Gate o verificación global.
 
 
 ## 4B.1 — Evidencia dimensional
@@ -379,3 +379,96 @@ prompt, evidencia enviada, conservación de respuestas y ausencia de escrituras;
 no demuestran razonamiento del modelo. Sigue pendiente repetir validación manual
 real/benchmark para evaluar atribución y regresión dimensional. No se ha ejecutado
 benchmark ni llamadas reales a OpenAI en esta subfase.
+
+## 4C.1 — Independent Technical Audit
+
+Technical Extraction proposes. Technical Audit independently challenges. El auditor
+trata la estructura como hipótesis: solo reporta errores/omisiones significativos
+demostrables, no preferencias de redacción ni interpretaciones igualmente válidas.
+UNKNOWN no es un error por sí mismo; no exige cortes de vidrio calculables ni
+datos ausentes. Una salida `issues=[]` es válida y esperada. No corrige valores,
+repite extracción, aplica defaults ni implementa Technical Gate.
+
+### Contratos
+
+- `TechnicalAuditIssueProposal`: issue_type, field_paths (al menos uno),
+  candidate_ids (sin duplicados), reason (no vacío/blanco).
+- `TechnicalStructureAuditProposal`: identity_id, issues.
+- `TechnicalAuditIssue`: todos los campos de IssueProposal más issue_id,
+  technical_structure_id e identity_id.
+- `TechnicalAuditResult`: batch_id, audited_technical_extraction_sha256,
+  structures_audited, issue_count, issues.
+
+Tipos exactos: UNSUPPORTED_VALUE, MISSING_SUPPORTED_VALUE, RESOLUTION_ERROR,
+SCOPE_ERROR, QUANTITY_ERROR, DIMENSION_ERROR, MODULE_COMPOSITION_ERROR,
+MODULE_FUNCTION_ERROR, PANE_COMPOSITION_ERROR, GLASS_SPECIFICATION_ERROR,
+ATTRIBUTE_OWNERSHIP_ERROR. Se pide el más específico: omisión explícita de vidrio
+usa GLASS_SPECIFICATION_ERROR; propiedad de sill atribuida al vidrio usa
+ATTRIBUTE_OWNERSHIP_ERROR, no el genérico. No hay corrected_value, confidence
+ni estructura de reemplazo. IDs `technical-audit-0001`, etc., en orden de estructura
+y después orden de issues del auditor.
+
+### Validación y lineage
+
+El servicio lee una sola vez los bytes exactos de technical_extraction.json,
+valida TechnicalExtractionResult y calcula SHA-256 sin reserializar. Reconstruye
+`build_technical_extraction_input(batch_id)`: comprueba de nuevo Identity/Audit/Gate,
+CoveredDiscovery y evidencia preparada, sin ejecutar servicios de esas fases.
+Exige batch y hashes de Identity/Gate actuales, targets exactos en orden, counters
+y unresolved preservados. `technical/validation.py` comprueba IDs únicos globales
+por clase, pertenencia de evidencia, missing_fields y resolution_status conforme a
+UNKNOWN/CONFLICT. El contrato existente valida conteos conocidos de módulos/panes.
+No cambia contratos ni servicio de extracción.
+
+Cada field_path se recorre por campos BaseModel e índices de listas existentes;
+se rechazan campos/índices inexistentes, paths vacíos y sintaxis insegura, sin eval.
+Una colección como `modules` o `modules[0].glass_panes` también es un target válido.
+Issues solo pueden citar candidatos de su Identity. Como los errores contractuales
+determinísticos se rechazan antes, los issues restantes requieren evidencia
+documental (candidate_ids no vacío); no se aceptan afirmaciones contractuales sin
+soporte del modelo sobre una entrada ya validada.
+
+### Solicitudes y configuración
+
+Una solicitud Responses estricta por Structure/Identity, en orden; ninguna request
+reejecuta extracción. El prompt `TECHNICAL_AUDIT_INSTRUCTIONS` es independiente del
+extractor y examina scope, quantity, dimensiones, composición, funciones, vidrio,
+propiedad de atributos y resolución, sin usar ground truth/identidad de fixtures.
+JSON inicial: current_structure completa (incluye notes/resolutions/evidencia),
+identity y candidates sin image_path. Después reutiliza `build_technical_images()`:
+candidate crops, Identity Page Context, Associated Annotation Context, full page,
+full native spans, con metadata/spans locales y detail=high. No envía paths,
+filenames, claves, respuestas previas del proveedor ni prompt del extractor.
+
+OPENAI_API_KEY obligatorio; SNG_TECHNICAL_AUDIT_MODEL independiente, default
+gpt-6.1-sol. store=False, timeout=180, max_retries=0, sin fallback/checkpoints.
+Presupuesto por estructura: 24 candidatos, 8 páginas, 220.000 bytes de metadata
+UTF-8 incluidos estructura, headers y spans. Imágenes base64 y prompt estático no
+cuentan en ese límite textual. Exceso falla antes de API, sin truncar ni chunking.
+
+Errores: TechnicalAuditConfigurationError, TechnicalAuditAPIError,
+InvalidTechnicalAuditResponseError, TechnicalAuditContextBudgetExceeded,
+InvalidTechnicalAuditInputError. Refusal/incomplete/malformed y errores API no se
+convierten en audit limpio. Mensajes API no incluyen claves, base64 ni cuerpos.
+
+### Persistencia y ejecución
+
+Solo tras éxito completo se publica `runtime/technical/<batch_id>/technical_audit.json`
+mediante staging y replace. Excepciones limpian staging y conservan audit anterior;
+technical_extraction.json y artefactos/evidencia previos permanecen intactos.
+
+```powershell
+python -m sng_consulter.technical audit "BATCH_ID"
+```
+
+El CLI conserva `python -m sng_consulter.technical "BATCH_ID"` para extracción.
+Audit no instancia el extractor ni ejecuta fases anteriores, y cierra el cliente
+en éxito/error. Solo persiste el contrato de audit; no guarda imágenes, prompts
+ni respuestas completas del proveedor.
+
+Tests sintéticos/SDK HTTP simulado comprueban validación, snapshot exacto, errores,
+evidencia, budget, CLI y atomicidad. No certifican precisión semántica: falta prueba
+manual real/benchmark para medir falsos positivos/omisiones, latencia y costo.
+No se ha ejecutado benchmark ni llamadas reales en esta implementación. No hay locks,
+checkpoints o recuperación automática ante cierre abrupto; el hash identifica el
+snapshot auditado y no congela los artefactos durante solicitudes concurrentes.
