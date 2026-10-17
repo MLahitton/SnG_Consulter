@@ -1,11 +1,15 @@
 """Deterministic checks of persisted technical results, without re-extraction."""
 
 import re
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 
 from .models import FieldResolution, TechnicalExtractionInput, TechnicalExtractionResult, TechnicalResolutionStatus
 from .service import _resolved_fields
+
+if TYPE_CHECKING:
+    from .audit.models import TechnicalAuditResult
 
 
 def resolve_field_path(structure: BaseModel, path: str):
@@ -55,3 +59,35 @@ def validate_technical_result(result: TechnicalExtractionResult, evidence: Techn
                 unique('pane', pane.glass_pane_id)
             for decoration in module.decorative_elements:
                 unique('decorative', decoration.decorative_element_id)
+
+
+def validate_technical_audit(audit: "TechnicalAuditResult", extraction: TechnicalExtractionResult,
+                             evidence: TechnicalExtractionInput, extraction_hash: str) -> None:
+    """Revalidate the persisted audit against its exact extraction and canonical targets."""
+    if audit.batch_id != evidence.batch_id:
+        raise ValueError("Technical Audit batch mismatch")
+    if audit.audited_technical_extraction_sha256 != extraction_hash:
+        raise ValueError("Technical Audit is stale relative to Technical Extraction; rerun audit before gate")
+    if audit.structures_audited != len(extraction.structures) or audit.issue_count != len(audit.issues):
+        raise ValueError("Inconsistent Technical Audit counters")
+    identities = {i.identity_id: i for i in evidence.identities}
+    structures = {s.identity_id: s for s in extraction.structures}
+    structure_ids = {s.technical_structure_id: s for s in extraction.structures}
+    positions = {s.technical_structure_id: n for n, s in enumerate(extraction.structures)}
+    last_position = -1
+    for n, issue in enumerate(audit.issues, 1):
+        if issue.issue_id != f"technical-audit-{n:04d}":
+            raise ValueError("Issue IDs must follow their exact deterministic sequence")
+        if issue.identity_id not in identities or issue.technical_structure_id not in structure_ids:
+            raise ValueError("Unknown issue Identity or structure")
+        structure = structures[issue.identity_id]
+        if structure.technical_structure_id != issue.technical_structure_id:
+            raise ValueError("Issue structure does not belong to its Identity")
+        position = positions[issue.technical_structure_id]
+        if position < last_position:
+            raise ValueError("Issue order conflicts with structure order")
+        last_position = position
+        if not issue.candidate_ids or not set(issue.candidate_ids) <= set(identities[issue.identity_id].candidate_ids):
+            raise ValueError("Issue candidates must belong exclusively to its Identity")
+        for path in issue.field_paths:
+            resolve_field_path(structure, path)

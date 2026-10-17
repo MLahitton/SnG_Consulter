@@ -528,4 +528,14 @@ limpio y retorna 1. No requiere API key ni instancia extractor/auditor. Se conse
 los comandos existentes de extracción y audit. Tests sintéticos verifican ambos
 estados, hashes exactos, alteraciones, referencias/orden, atomicidad e independencia
 offline del CLI. Esta implementación no ejecuta llamadas reales ni benchmark;
-queda pendiente su validación operativa con artefactos reales.
+la validación operativa posterior de 4C.2 reportada por el usuario cubrió múltiples
+artefactos reales, tanto READY_FOR_VERIFICATION como BLOCKED_BY_TECHNICAL_ISSUES.
+
+## Continuación en Fase 5
+
+Las fases 1–4 están cerradas. [5A Resolution Foundation](PHASE_5_TECHNICAL_RESOLUTION.md)
+consume los tres snapshots técnicos, sin resolver, aplicar propuestas ni publicar
+nuevos resultados. Reutiliza validate_technical_result y la validación de audit que
+usaba el Gate, extraída a validate_technical_audit en technical/validation.py.
+El Gate conserva reglas, errores y comportamiento; sus contratos y los de
+Extraction/Audit no cambian. No se han modificado prompts ni helpers visuales.

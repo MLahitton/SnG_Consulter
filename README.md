@@ -1,7 +1,7 @@
 ﻿# SnG Consulter
 
 Servicio de preparación documental para Steel & Glass. Fase 1 cerrada;
-estado actual: **4C.2 — Technical Gate**.
+estado actual: **5A — Resolution Foundation**.
 
 ## Discovery 2A.1 y 2A.2
 
@@ -618,3 +618,26 @@ Publica atómicamente `runtime/technical/<batch_id>/technical_gate.json`, con ha
 SHA-256 exactos de ambos inputs y todos los blocking_issue_ids en orden. Ante fallo
 conserva el Gate previo y los inputs. No requiere API key. Se conservan los comandos
 de extracción y audit; no existe Technical Resolution ni reconciliación automática.
+
+Según la validación operativa reportada, 4C.2 fue probado sobre múltiples artefactos
+reales, tanto READY_FOR_VERIFICATION como BLOCKED_BY_TECHNICAL_ISSUES.
+
+### Technical Resolution & Verification — 5A
+
+`technical/resolution/` define únicamente foundation offline: contratos y
+`build_technical_resolution_input(batch_id, ...)`, sin CLI nuevo, IA, apply ni
+publicación de resolución. Consume snapshots exactos de Extraction/Audit/Gate,
+revalida lineage/evidencia actual y agrupa solo estructuras con issues. READY da
+`resolution_required=false, targets=[]`; BLOCKED da un target por estructura afectada,
+con estructura actual, issues, evidencia canónica de su Identity y allowed_change_paths.
+Unresolved Identity permanece intacto y nunca se convierte en estructura.
+
+Los permisos derivan solo de los paths del audit: deduplicados, sin descendientes
+redundantes y en orden de primera aparición de los roots conservados. La pertenencia
+se compara por componentes, sin confundir índices. Las propuestas futuras usarán
+TechnicalStructure completa, no JSON patch genérico; esto no autoriza cambios fuera
+de los roots. No se comparan ni aplican propuestas en 5A.
+
+Actual: 5A Resolution Foundation. Futuro, todavía no implementado: 5B Issue-targeted
+Resolver, 5C Deterministic Apply/Validation, 5D Independent Verification y 5E Final
+Technical Gate. Ver [decisiones y contratos de Fase 5](docs/PHASE_5_TECHNICAL_RESOLUTION.md).

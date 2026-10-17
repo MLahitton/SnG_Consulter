@@ -13,7 +13,7 @@ from sng_consulter.storage import prepared_file
 from .audit.models import TechnicalAuditResult
 from .inputs import build_technical_extraction_input
 from .models import TechnicalExtractionResult
-from .validation import resolve_field_path, validate_technical_result
+from .validation import validate_technical_audit, validate_technical_result
 
 
 class TechnicalGateStatus(StrEnum):
@@ -55,34 +55,8 @@ class TechnicalGateService:
             validate_technical_result(extraction, evidence)
         except (ValueError, OSError):
             raise InvalidTechnicalGateInputError("Missing, invalid or stale Technical Extraction / Audit / canonical evidence") from None
-        if audit.batch_id != batch_id:
-            raise InvalidTechnicalGateInputError("Technical Audit batch mismatch")
-        if audit.audited_technical_extraction_sha256 != extraction_hash:
-            raise InvalidTechnicalGateInputError("Technical Audit is stale relative to Technical Extraction; rerun audit before gate")
-        if audit.structures_audited != len(extraction.structures) or audit.issue_count != len(audit.issues):
-            raise InvalidTechnicalGateInputError("Inconsistent Technical Audit counters")
-        identities = {i.identity_id: i for i in evidence.identities}
-        structures = {s.identity_id: s for s in extraction.structures}
-        structure_ids = {s.technical_structure_id: s for s in extraction.structures}
-        positions = {s.technical_structure_id: n for n, s in enumerate(extraction.structures)}
-        last_position = -1
         try:
-            for n, issue in enumerate(audit.issues, 1):
-                if issue.issue_id != f"technical-audit-{n:04d}":
-                    raise ValueError("Issue IDs must follow their exact deterministic sequence")
-                if issue.identity_id not in identities or issue.technical_structure_id not in structure_ids:
-                    raise ValueError("Unknown issue Identity or structure")
-                structure = structures[issue.identity_id]
-                if structure.technical_structure_id != issue.technical_structure_id:
-                    raise ValueError("Issue structure does not belong to its Identity")
-                position = positions[issue.technical_structure_id]
-                if position < last_position:
-                    raise ValueError("Issue order conflicts with structure order")
-                last_position = position
-                if not issue.candidate_ids or not set(issue.candidate_ids) <= set(identities[issue.identity_id].candidate_ids):
-                    raise ValueError("Issue candidates must belong exclusively to its Identity")
-                for path in issue.field_paths:
-                    resolve_field_path(structure, path)
+            validate_technical_audit(audit, extraction, evidence, extraction_hash)
         except ValueError as exc:
             raise InvalidTechnicalGateInputError(str(exc)) from None
         issue_ids = [issue.issue_id for issue in audit.issues]
