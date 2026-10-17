@@ -1,8 +1,9 @@
-# Technical Extraction — Foundation 4A, OpenAI Extractor 4B
+# Technical Extraction — Foundation 4A, Extractor 4B, Audit/Gate 4C
 
 Esta subfase define contratos internos, evidencia canónica, lineage y orquestación.
 4B implementa el adapter OpenAI del Protocol existente, sin cambiar contratos de
-4A. 4C.1 agrega auditoría independiente. No hay OCR, Technical Gate, Verification, Final Resolution, pricing, selección
+4A. 4C.1 agrega auditoría independiente y 4C.2 su Gate determinístico. No hay OCR,
+Technical Resolution, Verification, Final Resolution, pricing, selección
 de sistemas comerciales ni integración con Backend.
 
 ## Distinciones de dominio
@@ -267,7 +268,7 @@ No hay verificación técnica adicional, correcciones automáticas,
 selección comercial ni contrato público Backend. Persistencia sin locks ni
 recuperación automática ante cierre abrupto; los hashes identifican snapshots
 consumidos y futuros consumidores deberán comprobarlos.
-No se introducen chunking, retries adaptativos, Technical Gate o verificación global.
+No se introducen chunking, retries adaptativos o verificación global.
 
 
 ## 4B.1 — Evidencia dimensional
@@ -387,7 +388,7 @@ trata la estructura como hipótesis: solo reporta errores/omisiones significativ
 demostrables, no preferencias de redacción ni interpretaciones igualmente válidas.
 UNKNOWN no es un error por sí mismo; no exige cortes de vidrio calculables ni
 datos ausentes. Una salida `issues=[]` es válida y esperada. No corrige valores,
-repite extracción, aplica defaults ni implementa Technical Gate.
+repite extracción ni aplica defaults. El Gate separado se describe en 4C.2.
 
 ### Contratos
 
@@ -467,8 +468,64 @@ en éxito/error. Solo persiste el contrato de audit; no guarda imágenes, prompt
 ni respuestas completas del proveedor.
 
 Tests sintéticos/SDK HTTP simulado comprueban validación, snapshot exacto, errores,
-evidencia, budget, CLI y atomicidad. No certifican precisión semántica: falta prueba
-manual real/benchmark para medir falsos positivos/omisiones, latencia y costo.
-No se ha ejecutado benchmark ni llamadas reales en esta implementación. No hay locks,
+evidencia, budget, CLI y atomicidad; no certifican por sí solos precisión semántica.
+La validación manual de 4C.1 reportada por el usuario cubrió múltiples documentos
+reales: audit limpio, omisiones soportadas, propagación excesiva de glass specification
+y respeto de UNKNOWN legítimos. No se usan nombres ni resultados de esos casos como
+reglas productivas. Costos, latencia y regresión posterior requieren seguimiento.
+No hay locks,
 checkpoints o recuperación automática ante cierre abrupto; el hash identifica el
 snapshot auditado y no congela los artefactos durante solicitudes concurrentes.
+
+## 4C.2 — Technical Gate
+
+Gate offline y determinístico: Technical Extraction proposes, Technical Audit
+challenges, Technical Gate decides whether unresolved audit issues block progression.
+No interpreta documentos, valora severidad, descarta issues, corrige ni reejecuta
+ninguna fase. No utiliza OpenAI. Technical Resolution y reconciliación no están
+implementadas; READY no ejecuta Verification ni afirma que esa fase exista.
+
+`TechnicalGateStatus` tiene exactamente READY_FOR_VERIFICATION y
+BLOCKED_BY_TECHNICAL_ISSUES. `TechnicalGateResult` contiene batch_id,
+source_technical_extraction_sha256, source_technical_audit_sha256, status,
+issue_count y blocking_issue_ids; sin confidence ni reason duplicada.
+
+El servicio lee una única vez los bytes exactos de technical_extraction.json y
+technical_audit.json bajo runtime/technical/<batch_id>, calcula ambos SHA-256 y
+valida sus contratos, sin hashear reserializaciones. Reconstruye únicamente
+build_technical_extraction_input y reutiliza validate_technical_result: lineage
+Identity/Gate/CoveredDiscovery/evidencia preparada vigente, targets, orden, IDs,
+conteos, unresolved, evidencia y completitud se comprueban sin ejecutar fases.
+
+Audit debe pertenecer al batch, auditar el hash exacto actual de extracción y
+declarar structures_audited/issue_count correctos. Cada issue se revalida:
+
+- issue_id sigue exactamente technical-audit-0001, technical-audit-0002, etc.;
+- Identity y estructura existen y corresponden entre sí;
+- candidate_ids no vacío, sin duplicados y exclusivo de esa Identity;
+- field_paths no vacío y cada campo/índice existe según resolve_field_path;
+- reason no vacío/blanco y issue_type pertenece al enum actual;
+- el orden no retrocede a una estructura anterior; varios issues de una estructura
+  son válidos, conservando su orden persistido.
+
+Tras validar todo, cero issues da READY_FOR_VERIFICATION, contador cero y lista
+vacía. Uno o más da BLOCKED_BY_TECHNICAL_ISSUES y todos sus IDs en orden. No hay
+excepciones por tipo ni severidad. BLOCKED es un resultado exitoso, no un error de
+ejecución. Missing/invalid/stale/inconsistente/tampered produce
+InvalidTechnicalGateInputError; nunca se convierte en READY o BLOCKED.
+
+Publica technical_gate.json mediante staging + replace atómico, solo tras éxito
+completo. Un fallo limpia staging, conserva Gate anterior y no modifica extracción,
+audit ni upstream. No hay locks ni congelación concurrente de inputs; los hashes
+identifican los snapshots leídos, y un cierre abrupto puede dejar staging.
+
+```powershell
+python -m sng_consulter.technical gate "BATCH_ID"
+```
+
+CLI: READY y BLOCKED retornan 0; input inválido o fallo de publicación muestra error
+limpio y retorna 1. No requiere API key ni instancia extractor/auditor. Se conservan
+los comandos existentes de extracción y audit. Tests sintéticos verifican ambos
+estados, hashes exactos, alteraciones, referencias/orden, atomicidad e independencia
+offline del CLI. Esta implementación no ejecuta llamadas reales ni benchmark;
+queda pendiente su validación operativa con artefactos reales.

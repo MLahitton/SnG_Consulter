@@ -41,10 +41,28 @@ def _audit_main(argv: list[str]) -> int:
     return 0
 
 
+def _gate_main(argv: list[str]) -> int:
+    from .gate import TechnicalGateService, InvalidTechnicalGateInputError
+
+    parser = argparse.ArgumentParser(description="Offline deterministic gate over persisted technical artifacts")
+    parser.add_argument("batch_id")
+    args = parser.parse_args(argv)
+    try:
+        result = TechnicalGateService().gate(args.batch_id)
+    except (InvalidTechnicalGateInputError, OSError) as exc:
+        print(f"{type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    print(f"Technical Gate: {result.status}\n{result.issue_count} blocking issues\n"
+          f"Result: runtime/technical/{result.batch_id}/technical_gate.json")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     if argv and argv[0] == "audit":
         return _audit_main(argv[1:])
+    if argv and argv[0] == "gate":
+        return _gate_main(argv[1:])
     parser = argparse.ArgumentParser(description="Extract technical proposals from a persisted READY batch")
     parser.add_argument("batch_id")
     args = parser.parse_args(argv)

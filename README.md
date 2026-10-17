@@ -1,7 +1,7 @@
 ﻿# SnG Consulter
 
 Servicio de preparación documental para Steel & Glass. Fase 1 cerrada;
-estado actual: **4C.1 — Independent Technical Audit**.
+estado actual: **4C.2 — Technical Gate**.
 
 ## Discovery 2A.1 y 2A.2
 
@@ -366,7 +366,7 @@ impide publicar todo el batch y conserva el resultado previo. El adapter no escr
 artefactos: el servicio existente sigue publicando tras validar todas las propuestas.
 El CLI cierra el cliente ante éxito/error y nunca ejecuta fases anteriores.
 
-No existen Technical Gate, Verification ni Final Resolution. El empaquetado es
+No existen Technical Resolution, Verification ni Final Resolution. El empaquetado es
 determinístico; la calidad y variabilidad del proveedor requieren prueba manual real.
 
 ## Preparación disponible
@@ -595,4 +595,26 @@ puede ser correcto y `issues=[]` es válido. No corrige ni vuelve a extraer.
 Publica atómicamente `technical_audit.json`, con SHA-256 de los bytes exactos del
 resultado auditado. Un fallo conserva el audit anterior. Límites por estructura:
 24 candidatos, 8 páginas, 220.000 bytes de metadata, sin truncar ni retries.
-No se implementa Technical Gate. Falta validación semántica con documentos reales.
+Según la validación manual reportada, 4C.1 fue probado sobre múltiples documentos
+reales: audit limpio, omisiones soportadas, propagación excesiva de especificación
+de vidrio y respeto de UNKNOWN legítimos. Esa revisión complementa los tests sintéticos.
+
+### Technical Gate — 4C.2
+
+Technical Extraction propone, Technical Audit critica y Technical Gate decide
+determinísticamente si los issues pendientes bloquean el avance. Es completamente
+offline: no interpreta evidencia, descarta issues, corrige valores ni ejecuta fases.
+
+```powershell
+python -m sng_consulter.technical gate "BATCH_ID"
+```
+
+Lee los bytes exactos de extracción y audit una sola vez, valida lineage y evidencia
+canónica actual, y revalida IDs, orden, referencias, candidatos y paths de cada issue.
+Audit limpio produce `READY_FOR_VERIFICATION`; cualquier issue válido produce
+`BLOCKED_BY_TECHNICAL_ISSUES`. Ambos son éxitos del comando (exit code 0); artefactos
+missing/invalid/stale/inconsistentes fallan con exit code 1.
+Publica atómicamente `runtime/technical/<batch_id>/technical_gate.json`, con hashes
+SHA-256 exactos de ambos inputs y todos los blocking_issue_ids en orden. Ante fallo
+conserva el Gate previo y los inputs. No requiere API key. Se conservan los comandos
+de extracción y audit; no existe Technical Resolution ni reconciliación automática.
