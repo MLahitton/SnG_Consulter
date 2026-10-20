@@ -57,12 +57,38 @@ def _gate_main(argv: list[str]) -> int:
     return 0
 
 
+def _resolve_main(argv: list[str]) -> int:
+    from .resolution.inputs import InvalidTechnicalResolutionInputError
+    from .resolution.service import (
+        TechnicalResolutionProposalService,
+        TechnicalResolutionConfigurationError, TechnicalResolutionAPIError,
+        InvalidTechnicalResolutionResponseError, TechnicalResolutionContextBudgetExceeded,
+    )
+    parser = argparse.ArgumentParser(description="Propose issue-targeted Resolution without applying it")
+    parser.add_argument("batch_id")
+    args = parser.parse_args(argv)
+    try:
+        result = TechnicalResolutionProposalService().resolve(args.batch_id)
+    except (InvalidTechnicalResolutionInputError, TechnicalResolutionConfigurationError, TechnicalResolutionAPIError,
+            InvalidTechnicalResolutionResponseError, TechnicalResolutionContextBudgetExceeded, OSError, ValueError) as exc:
+        print(f"{type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    if result is None:
+        print("Technical Resolution not required: READY_FOR_VERIFICATION\n0 targets")
+    else:
+        print(f"Technical Resolution proposals completed: {result.targets_processed} targets\n"
+              f"Result: runtime/technical/{result.batch_id}/technical_resolution_proposals.json")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     if argv and argv[0] == "audit":
         return _audit_main(argv[1:])
     if argv and argv[0] == "gate":
         return _gate_main(argv[1:])
+    if argv and argv[0] == "resolve":
+        return _resolve_main(argv[1:])
     parser = argparse.ArgumentParser(description="Extract technical proposals from a persisted READY batch")
     parser.add_argument("batch_id")
     args = parser.parse_args(argv)

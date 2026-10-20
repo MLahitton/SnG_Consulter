@@ -2,19 +2,20 @@
 
 ## Estado y límites
 
-Implementado exclusivamente **5A — Resolution Foundation**: modelos, permisos por
-path y builder determinístico de solo lectura. Fases 1–4 cerradas. La validación
+Implementado **5B — Issue-targeted Resolver**, exclusivamente proposal-only, sobre
+5A cerrada: modelos, permisos por path y builder determinístico de solo lectura. Fases 1–4 cerradas. La validación
 operativa de 4C.2 reportada cubrió múltiples artefactos reales con estados READY y
 BLOCKED; no se incorporan sus nombres, referencias ni resultados como reglas.
 
-No existe resolver, adapter OpenAI, CLI resolve, apply, Verification ni Final Gate.
-No se llama IA ni ejecutan fases anteriores. No se crean technical_resolution.json,
-runtime/resolution, crops, prompts o respuestas; tampoco se modifica una estructura.
+5B agrega adapter OpenAI y CLI resolve; no existen apply, Verification ni Final Gate.
+No se ejecutan fases anteriores. No se crean technical_resolution.json,
+runtime/resolution, crops, prompts ni respuestas completas del proveedor. Solo se
+publican propuestas contractuales; ninguna TechnicalStructure persistida se modifica.
 
 | Subfase | Estado |
 | --- | --- |
 | 5A Resolution Foundation | Implementada |
-| 5B Issue-targeted Resolver | Futura; no implementada |
+| 5B Issue-targeted Resolver | Implementada, solo propuestas |
 | 5C Deterministic Apply/Validation | Futura; no implementada |
 | 5D Independent Verification | Futura; no implementada |
 | 5E Final Technical Gate | Futura; no implementada |
@@ -124,6 +125,116 @@ fases y ausencia de imports de proveedores/adapters en un proceso limpio. Los te
 del Gate se conservan como regresión del pequeño helper compartido.
 
 Los hashes identifican snapshots, no bloquean ediciones concurrentes de archivos.
-La validación operativa de 5A con artefactos reales queda pendiente. Antes de 5B
-habrá que definir su adapter/prompt issue-targeted, consumo completo de outcomes y
-presupuesto visual sin ampliar permisos. Todo ello es futuro, no funcionalidad de 5A.
+La validación operativa de 5A reportada cubrió múltiples artefactos reales: READY
+sin targets, BLOCKED solo con estructuras afectadas, allowed_change_paths acordes
+a issues y unresolved_groups preservados. No se usan identidades de esos casos
+como reglas. La validación real del resolver 5B queda pendiente.
+
+## 5B — Servicio de propuestas
+
+TechnicalResolutionProposalService.resolve(batch_id) construye primero el input 5A.
+READY devuelve None (no-op), sin instanciar/importar el adapter, pedir API key,
+hacer solicitudes ni crear un archivo. Si había propuestas anteriores, no las borra
+ni actualiza: sus hashes siguen identificando sus snapshots de origen.
+
+BLOCKED instancia un resolver, procesa exactamente los targets en orden con una
+solicitud por target, no por issue, y cierra el cliente en éxito/error. Cada target
+recibe solo su estructura baseline, issues, permisos, Identity y evidencia. El
+servicio pasa copia al resolver y no altera inputs. Fallos no se convierten en
+UNRESOLVED: ese outcome solo puede venir de una respuesta válida.
+
+TechnicalResolutionProposalResult, definido en resolution/service.py sin cambiar
+los modelos cerrados 5A, contiene batch_id, los tres source_technical_*_sha256,
+targets_processed y proposals (TechnicalStructureResolutionProposal[]). El contador
+coincide con la lista y el servicio incluye una propuesta por target, en su orden.
+No incluye estructuras limpias ni unresolved Identity.
+
+Publica únicamente technical_resolution_proposals.json dentro del batch técnico,
+mediante staging + replace tras éxito completo de todos los targets. Errores API,
+validación o publicación conservan las propuestas previas y todos los artefactos
+de origen byte-identical. Excepciones limpian staging; no hay checkpoints ni locks.
+Un cierre abrupto puede dejar staging, como en los publicadores anteriores.
+
+## Prompt, evidencia y presupuesto de 5B
+
+TECHNICAL_RESOLUTION_INSTRUCTIONS es independiente de los prompts cerrados de
+extracción y audit. current_structure es baseline; solo los issues recibidos se
+trabajan, allowed_change_paths es límite duro. Prohíbe mejorar campos ajenos y
+prescribe preservar valores/IDs/orden/notas/evidencia fuera de roots, además de
+missing_fields y resolution_status actuales, incluso temporalmente stale. 5C los
+recalculará después; no se recalculan aquí.
+
+CORRECTED propone corrección documental autorizada; DISPUTED requiere evidencia
+de que el issue no requiere cambio (Audit no es ground truth); UNRESOLVED preserva
+los paths cuando no hay evidencia suficiente. No hay outcomes extra ni omisiones.
+Las unidades implícitas coherentes permiten INFERRED con evidencia/nota, sin medir
+píxeles ni calcular vidrio terminado. La especificación solo se propaga con scope
+whole-set inequívoco; un leader a un pane no autoriza a otros. Ownership impide
+trasladar atributos de frame/sill/etc. a vidrio. No se introducen defaults.
+
+Reutiliza exactamente build_technical_images(identity): candidate crops, Identity
+Page Context, Associated Annotation Context y full page. Se conservan metadata y
+spans locales/completos, detail=high, márgenes y píxeles existentes. No agrega OCR,
+crops ni persistencia visual. JSON inicial incluye IDs, current_structure, issues,
+allowed_change_paths, Identity y candidatos sin image_path. No envía paths,
+filenames, claves, ground truth, prompts cerrados ni respuestas previas del proveedor.
+
+SNG_TECHNICAL_RESOLUTION_MODEL independiente, default gpt-6.1-sol. OPENAI_API_KEY
+solo es necesario al instanciar el adapter con targets reales. SDK Responses con
+salida estricta TechnicalStructureResolutionProposal, store=False, timeout=180,
+max_retries=0 y sin fallback. Límites por target: 24 candidatos, 8 páginas,
+240.000 bytes UTF-8 de metadata (incluidos estructura, issues, headers y spans),
+sin truncar ni chunking. Prompt estático y base64 no cuentan en ese límite textual.
+Exceso falla antes de API con TechnicalResolutionContextBudgetExceeded.
+
+## Validación limitada de propuestas, no apply
+
+Se validan contrato TechnicalStructure, ambos pares de IDs del target/propuesta,
+issue_ids exactamente en orden sin extra/missing/duplicados, evidencia exclusiva
+de Identity y evidencia no vacía para CORRECTED/DISPUTED. UNRESOLVED puede tener
+evidencia vacía, sin inventarla. También se rechaza evidencia ajena en los campos
+de la estructura y cambios de missing_fields/resolution_status. Se rechazan nuevos
+DEFAULTED; defaults previamente existentes fuera de roots deben conservarse exactos.
+Estas comprobaciones acotadas no constituyen el diff general por paths de 5C.
+
+La evidencia de issue_resolutions justifica el outcome; no reemplaza las reglas
+del ResolvedField propuesto. Una correccion CORRECTED puede citar candidatos y
+retirar una especificacion no sustentada dejando el campo UNKNOWN con value=null
+y evidence_candidate_ids=[], incluso si su note explica prudentemente la ausencia.
+
+Los ValidationError se resumen por ruta, tipo y mensaje seguro, en orden
+determinista, sin incluir input, contexto de excepciones ni payload del proveedor.
+Nombres de campos desconocidos y mensajes no confiables se sustituyen por
+descripciones genericas; los errores del contrato ResolvedField conservan su motivo.
+
+Errores diferenciados: TechnicalResolutionConfigurationError,
+TechnicalResolutionAPIError, InvalidTechnicalResolutionResponseError,
+TechnicalResolutionContextBudgetExceeded y el InvalidTechnicalResolutionInputError
+de 5A. Refusal/incomplete/malformed/contrato inválido fallan explícitamente; errores
+API no publican claves, base64 ni cuerpos. No se repara una respuesta inválida.
+
+```powershell
+python -m sng_consulter.technical resolve "BATCH_ID"
+```
+
+READY imprime not required / 0 targets y retorna 0. BLOCKED exitoso imprime targets
+procesados y archivo de propuestas, retorna 0. Fuentes/configuración/API/output
+inválidos o error de escritura retornan 1. No ejecuta Extraction/Audit/Gate ni fases
+anteriores. Sus comandos existentes permanecen disponibles.
+
+## Deuda explícita antes de 5C
+
+5C no existe y ninguna propuesta ha sido aplicada por 5B. Falta el diff completo
+de current/proposed_structure, aplicación validada y reconstrucción determinística
+de bookkeeping. El prompt no reemplaza esa comprobación: propuestas fuera de roots
+todavía no se detectan mediante un diff general y no deben consumirse como resultado
+aplicado. Igual ocurre con la comprobación semántica de que DISPUTED/UNRESOLVED no
+alteren sus paths; se instruye al modelo, pero la validación completa es posterior.
+
+La política de IDs para composición debe cerrarse antes de aplicar adiciones,
+eliminaciones o reordenamientos. El prompt 5B pide UNRESOLVED y baseline preservado
+si no puede representarse responsablemente una corrección dentro de permisos y
+contrato sin inventar IDs o ampliar roots de conteo. No hay ID allocator ni apply.
+Verification (5D) y Final Gate (5E) siguen futuros. La implementación se valida
+con tests sintéticos/SDK simulado, no con solicitudes reales ni benchmarks. Queda
+pendiente revisión manual real del resolver tras revisar el reporte.
