@@ -1,7 +1,7 @@
 ﻿# SnG Consulter
 
 Servicio de preparación documental para Steel & Glass. Fase 1 cerrada;
-estado actual: **5A — Resolution Foundation**.
+estado actual: **5B — Issue-targeted Resolver (proposal-only)**.
 
 ## Discovery 2A.1 y 2A.2
 
@@ -366,7 +366,7 @@ impide publicar todo el batch y conserva el resultado previo. El adapter no escr
 artefactos: el servicio existente sigue publicando tras validar todas las propuestas.
 El CLI cierra el cliente ante éxito/error y nunca ejecuta fases anteriores.
 
-No existen Technical Resolution, Verification ni Final Resolution. El empaquetado es
+No existen apply de Technical Resolution, Verification ni Final Resolution. El empaquetado es
 determinístico; la calidad y variabilidad del proveedor requieren prueba manual real.
 
 ## Preparación disponible
@@ -624,7 +624,7 @@ reales, tanto READY_FOR_VERIFICATION como BLOCKED_BY_TECHNICAL_ISSUES.
 
 ### Technical Resolution & Verification — 5A
 
-`technical/resolution/` define únicamente foundation offline: contratos y
+La foundation 5A de `technical/resolution/` define contratos y
 `build_technical_resolution_input(batch_id, ...)`, sin CLI nuevo, IA, apply ni
 publicación de resolución. Consume snapshots exactos de Extraction/Audit/Gate,
 revalida lineage/evidencia actual y agrupa solo estructuras con issues. READY da
@@ -638,6 +638,33 @@ se compara por componentes, sin confundir índices. Las propuestas futuras usar�
 TechnicalStructure completa, no JSON patch genérico; esto no autoriza cambios fuera
 de los roots. No se comparan ni aplican propuestas en 5A.
 
-Actual: 5A Resolution Foundation. Futuro, todavía no implementado: 5B Issue-targeted
-Resolver, 5C Deterministic Apply/Validation, 5D Independent Verification y 5E Final
+5A fue validada operativamente según el reporte recibido: READY produjo cero targets,
+BLOCKED solo estructuras afectadas, paths acordes a issues y unresolved preservados.
+
+Actual: 5B Issue-targeted Resolver, sobre la foundation 5A. Futuro, todavía no
+implementado: 5C Deterministic Apply/Validation, 5D Independent Verification y 5E Final
 Technical Gate. Ver [decisiones y contratos de Fase 5](docs/PHASE_5_TECHNICAL_RESOLUTION.md).
+
+### Issue-targeted Resolver — 5B (solo propuestas)
+
+```powershell
+python -m sng_consulter.technical resolve "BATCH_ID"
+```
+
+Primero valida snapshots mediante 5A. READY retorna éxito, cero targets, sin API
+key, cliente ni archivo nuevo. BLOCKED usa una request por target con issues y
+allowed_change_paths; nunca vuelve a extraer estructuras limpias. Configuración:
+OPENAI_API_KEY, SNG_TECHNICAL_RESOLUTION_MODEL (default gpt-6.1-sol), store=False,
+timeout 180 y retries 0. Reutiliza crops/contextos/páginas/spans, sin imágenes nuevas.
+
+Publica solo tras éxito completo `runtime/technical/<batch_id>/technical_resolution_proposals.json`,
+con tres hashes fuente y propuestas en orden. El modelo devuelve estructura completa
+y un outcome por issue: CORRECTED, DISPUTED o UNRESOLVED. Se validan IDs, cobertura
+de issues, evidencia, contrato, bookkeeping preservado y ausencia de nuevos DEFAULTED.
+Límites: 24 candidatos, 8 páginas, 240.000 bytes de metadata por target, sin truncar.
+
+**Las propuestas NO están aplicadas.** Technical Extraction, Audit y Gate no cambian.
+5C todavía no existe: falta diff general por permisos, apply, política de IDs para
+composición y bookkeeping derivado. Las restricciones de paths se instruyen al modelo,
+pero no se certifican mediante diff en 5B. Falta validación real; esta implementación
+solo usa tests sintéticos/SDK simulado, sin ejecutar batches reales ni benchmark.
