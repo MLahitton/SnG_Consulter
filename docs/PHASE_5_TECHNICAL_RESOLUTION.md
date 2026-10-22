@@ -2,18 +2,19 @@
 
 ## Estado y límites
 
-Implementado **5C — Deterministic Apply / Validation**, sobre 5A cerrada y 5B
-proposal-only. Fases 1–4 cerradas. No se cambia su semántica ni se reejecutan servicios
-anteriores. 5C no importa proveedores, no usa API ni interpreta evidencia nueva.
-Publica únicamente un snapshot aplicado, sin modificar los artefactos de origen.
-Verification y Final Gate todavía no existen.
+5C — Deterministic Apply / Validation está implementada y validada operativamente,
+sobre 5A cerrada y 5B proposal-only. Fases 1–4 cerradas. No se cambia su semántica ni
+se reejecutan servicios anteriores. 5C no importa proveedores, no usa API ni interpreta
+evidencia nueva. Publica un snapshot aplicado, sin modificar los artefactos de origen.
+La subfase actual es [5D Independent Verification](PHASE_5_TECHNICAL_VERIFICATION.md).
+Final Gate 5E todavía no existe.
 
 | Subfase | Estado |
 | --- | --- |
 | 5A Resolution Foundation | Implementada |
 | 5B Issue-targeted Resolver | Implementada, solo propuestas |
-| 5C Deterministic Apply/Validation | Implementada, validación sintética |
-| 5D Independent Verification | Futura; no implementada |
+| 5C Deterministic Apply/Validation | Implementada y validada operativamente |
+| 5D Independent Verification | Implementada, validación sintética |
 | 5E Final Technical Gate | Futura; no implementada |
 
 ## Builder y snapshots
@@ -313,12 +314,14 @@ y Changes. Ambos muestran Result y retornan 0. Fuentes inválidas, proposals aus
 en BLOCKED, diffs no autorizados y fallos de aplicación/persistencia retornan 1.
 El CLI no importa OpenAI ni ejecuta fases anteriores o 5B automáticamente.
 
-## Deuda explícita antes de 5D
+## Validación operativa de 5C y límites vigentes
 
-5C está probado con casos sintéticos, sin ejecutar batches reales ni API. Falta la
-validación operativa posterior sobre las propuestas reales existentes. 5D Independent
-Verification y 5E Final Technical Gate siguen pendientes. technical_resolution.json
-NO es un resultado final certificado ni el contrato final de Backend.
+Según el reporte operativo recibido, 5C fue validada sobre múltiples artefactos reales:
+UNKNOWN → INFERRED, EXPLICIT → UNKNOWN, READY sin proposals, bookkeeping recalculado,
+cambios solo bajo paths autorizados y resultado completo preservado. No se incorporan
+nombres, referencias ni valores de esos casos como reglas. technical_resolution.json
+NO es un resultado final certificado ni el contrato final de Backend. 5D ya está
+implementada con validación sintética; su revisión operativa y 5E siguen pendientes.
 
 La composición sigue conservadora: no se admiten adiciones, eliminaciones ni
 reordenamientos y no hay allocator de IDs. No se interpreta evidencia para juzgar

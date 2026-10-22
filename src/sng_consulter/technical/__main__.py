@@ -100,6 +100,29 @@ def _apply_resolution_main(argv: list[str]) -> int:
     return 0
 
 
+def _verify_main(argv: list[str]) -> int:
+    from .verification import (
+        TechnicalVerificationService, InvalidTechnicalVerificationInputError, TechnicalVerificationConfigurationError,
+        TechnicalVerificationAPIError, InvalidTechnicalVerificationResponseError, TechnicalVerificationContextBudgetExceeded,
+    )
+    parser = argparse.ArgumentParser(description="Independently verify the persisted applied technical result")
+    parser.add_argument("batch_id")
+    args = parser.parse_args(argv)
+    try:
+        result = TechnicalVerificationService().verify(args.batch_id)
+    except (InvalidTechnicalVerificationInputError, TechnicalVerificationConfigurationError,
+            TechnicalVerificationAPIError, InvalidTechnicalVerificationResponseError,
+            TechnicalVerificationContextBudgetExceeded) as exc:
+        print(f"{type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    except OSError:
+        print("OSError: Verification persistence/system failure", file=sys.stderr)
+        return 1
+    print(f"Technical Verification completed:\n{result.structures_verified} structures verified\n"
+          f"{result.issue_count} issues\nResult: runtime/technical/{result.batch_id}/technical_verification.json")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     if argv and argv[0] == "audit":
@@ -110,6 +133,8 @@ def main(argv: list[str] | None = None) -> int:
         return _resolve_main(argv[1:])
     if argv and argv[0] == "apply-resolution":
         return _apply_resolution_main(argv[1:])
+    if argv and argv[0] == "verify":
+        return _verify_main(argv[1:])
     from .openai_extractor import (
         OpenAITechnicalExtractor, TechnicalAPIError, TechnicalConfigurationError,
         InvalidTechnicalResponseError, TechnicalContextBudgetExceeded,

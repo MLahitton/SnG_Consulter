@@ -1,7 +1,7 @@
 ﻿# SnG Consulter
 
 Servicio de preparación documental para Steel & Glass. Fase 1 cerrada;
-estado actual: **5C — Deterministic Apply / Validation**.
+estado actual: **5D — Independent Verification**.
 
 ## Discovery 2A.1 y 2A.2
 
@@ -641,8 +641,8 @@ de los roots. No se comparan ni aplican propuestas en 5A.
 5A fue validada operativamente según el reporte recibido: READY produjo cero targets,
 BLOCKED solo estructuras afectadas, paths acordes a issues y unresolved preservados.
 
-Actual: 5C Deterministic Apply/Validation, sobre 5A y las propuestas de 5B.
-5D Independent Verification y 5E Final Technical Gate siguen futuros.
+Actual: 5D Independent Verification, sobre el snapshot aplicado por 5C.
+5E Final Technical Gate sigue futuro.
 Ver [decisiones y contratos de Fase 5](docs/PHASE_5_TECHNICAL_RESOLUTION.md).
 
 ### Issue-targeted Resolver — 5B (solo propuestas)
@@ -694,6 +694,40 @@ estructura aunque varios issues CORRECTED los compartan. Cualquier fallo conserv
 el resultado previo y todos los inputs. No hay locks ni garantías frente a cierre
 abrupto; los hashes identifican los snapshots consumidos.
 
-**technical_resolution.json todavía NO es el contrato final de Backend**: faltan 5D y
-5E. 5C tiene validación sintética; la prueba operativa sobre propuestas reales queda
-pendiente y no se ejecuta automáticamente.
+**technical_resolution.json todavía NO es el contrato final de Backend**.
+Según la validación operativa reportada, 5C cubrió UNKNOWN → INFERRED,
+EXPLICIT → UNKNOWN y READY sin proposals, con bookkeeping recalculado, cambios
+limitados a paths autorizados y el resultado completo preservado.
+
+### Independent Verification — 5D
+
+```powershell
+python -m sng_consulter.technical verify "BATCH_ID"
+```
+
+Verifica todas las estructuras del `technical_resolution.json` actual contra la
+evidencia canónica. No corrige, extrae ni aplica cambios y no ejecuta fases previas.
+Antes de crear el cliente valida lineage Extraction/Audit/Gate, proposals en BLOCKED,
+issues aplicados, IDs, evidencia, contadores y bookkeeping. READY ignora proposals
+históricos. El resultado conserva el hash de los bytes exactos de Resolution.
+
+Una request independiente por estructura recibe solo estructura actual, Identity,
+candidatos y las imágenes/contextos/spans existentes. No recibe issues, reasons,
+outcomes ni changed_paths del Audit/Resolver/apply. UNKNOWN y CONFLICT pueden ser
+correctos: solo se reportan errores documentales concretos, sin valores corregidos.
+
+Configuración: OPENAI_API_KEY y SNG_TECHNICAL_VERIFICATION_MODEL (default gpt-6.1-sol),
+Responses con schema estricto, store=False, timeout 180 y retries 0. Límites por
+estructura: 24 candidatos, 8 páginas y 240.000 bytes UTF-8 de metadata completa.
+No hay truncamiento, chunking ni fallback. Reutiliza visuales sin modificarlos.
+
+Publica atómicamente `runtime/technical/<batch_id>/technical_verification.json`,
+con structures_verified, issue_count, hash de Resolution e issues con IDs
+technical-verification-0001, etc. Conserva resultados previos y fuentes ante fallo.
+Cero issues o issues presentes son éxito de ejecución (exit 0); input/API/output
+inválido retorna 1. No produce READY/BLOCKED/PASS/FAIL.
+
+**technical_verification.json todavía NO es el contrato final de Backend**.
+5E sigue pendiente. 5D se valida con tests sintéticos y SDK simulado; la revisión
+operativa documental posterior queda pendiente. Ver
+[contratos y límites de 5D](docs/PHASE_5_TECHNICAL_VERIFICATION.md).
