@@ -210,7 +210,8 @@ def test_cli_resolve_does_not_execute_previous_phases(resolution_case,monkeypatc
         service.resolver_factory=config_error
     monkeypatch.delenv('OPENAI_API_KEY',raising=False)
     def forbidden(*a,**kw): pytest.fail('resolve must not instantiate other clients or execute earlier phases')
-    monkeypatch.setattr(command,'OpenAITechnicalExtractor',forbidden)
+    from sng_consulter.technical import openai_extractor
+    monkeypatch.setattr(openai_extractor,'OpenAITechnicalExtractor',forbidden)
     monkeypatch.setattr(OpenAITechnicalResolver,'__init__',forbidden)
     for cls,method in [(TechnicalExtractionService,'extract'),(TechnicalAuditService,'audit'),(TechnicalGateService,'gate'),
         (IdentityResolutionService,'resolve'),(IdentityAuditService,'audit'),(IdentityGateService,'gate'),(DiscoveryService,'discover')]:

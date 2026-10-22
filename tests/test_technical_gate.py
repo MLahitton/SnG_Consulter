@@ -187,7 +187,8 @@ def test_cli_gate_offline_no_phase_execution_and_correct_exit_codes(gate_case,mo
     elif state == 'invalid': source.unlink()
     monkeypatch.delenv('OPENAI_API_KEY',raising=False)
     def forbidden(*args,**kwargs): pytest.fail('Gate must not create AI clients or execute phases')
-    monkeypatch.setattr(command,'OpenAITechnicalExtractor',forbidden)
+    from sng_consulter.technical import openai_extractor
+    monkeypatch.setattr(openai_extractor,'OpenAITechnicalExtractor',forbidden)
     monkeypatch.setattr(OpenAITechnicalAuditor,'__init__',forbidden)
     for cls,name in [(TechnicalAuditService,'audit'),(TechnicalExtractionService,'extract'),
         (DiscoveryService,'discover'),(CoverageAuditService,'audit'),(IdentityResolutionService,'resolve'),

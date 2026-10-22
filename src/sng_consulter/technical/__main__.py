@@ -1,4 +1,4 @@
-"""Manual real extraction from an existing READY TechnicalExtractionInput."""
+"""Manual technical commands; deterministic commands load no provider adapters."""
 
 import argparse
 import sys
@@ -9,10 +9,6 @@ from sng_consulter.storage import ContentIdentityConflictError, IncompatiblePrep
 from sng_consulter.identity.inputs import InvalidIdentityInputError
 
 from .inputs import build_technical_extraction_input, InvalidTechnicalInputError
-from .openai_extractor import (
-    OpenAITechnicalExtractor, TechnicalAPIError, TechnicalConfigurationError,
-    InvalidTechnicalResponseError, TechnicalContextBudgetExceeded,
-)
 from .service import TechnicalExtractionService, InvalidTechnicalProposalError
 
 
@@ -81,6 +77,29 @@ def _resolve_main(argv: list[str]) -> int:
     return 0
 
 
+def _apply_resolution_main(argv: list[str]) -> int:
+    from .resolution.application import TechnicalResolutionApplicationService
+    from .resolution.service import InvalidTechnicalResolutionResponseError
+
+    parser = argparse.ArgumentParser(description="Offline deterministic Resolution apply / validation")
+    parser.add_argument("batch_id")
+    args = parser.parse_args(argv)
+    try:
+        result = TechnicalResolutionApplicationService().apply(args.batch_id)
+    except (ValueError, InvalidTechnicalResolutionResponseError, OSError) as exc:
+        # Error classes distinguish invalid inputs, authorization, composition and system failure.
+        print(f"{type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    if not result.resolution_required:
+        print("Technical Resolution applied: 0 issues, 0 changes")
+    else:
+        print(f"Technical Resolution applied:\nCORRECTED: {result.corrected_issue_count}\n"
+              f"DISPUTED: {result.disputed_issue_count}\nUNRESOLVED: {result.unresolved_issue_count}\n"
+              f"Changes: {result.changes_applied_count}")
+    print(f"Result: runtime/technical/{result.batch_id}/technical_resolution.json")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     if argv and argv[0] == "audit":
@@ -89,6 +108,12 @@ def main(argv: list[str] | None = None) -> int:
         return _gate_main(argv[1:])
     if argv and argv[0] == "resolve":
         return _resolve_main(argv[1:])
+    if argv and argv[0] == "apply-resolution":
+        return _apply_resolution_main(argv[1:])
+    from .openai_extractor import (
+        OpenAITechnicalExtractor, TechnicalAPIError, TechnicalConfigurationError,
+        InvalidTechnicalResponseError, TechnicalContextBudgetExceeded,
+    )
     parser = argparse.ArgumentParser(description="Extract technical proposals from a persisted READY batch")
     parser.add_argument("batch_id")
     args = parser.parse_args(argv)

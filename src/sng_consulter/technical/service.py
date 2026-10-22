@@ -31,6 +31,15 @@ def _resolved_fields(value, path=""):
             yield from _resolved_fields(item,f"{path}[{index}]")
 
 
+def technical_bookkeeping(structure):
+    """Canonical non-destructive completeness view, shared by extraction and apply."""
+    fields = list(_resolved_fields(structure))
+    missing = [path for path, field in fields if field.resolution == FieldResolution.UNKNOWN]
+    status = (TechnicalResolutionStatus.AMBIGUOUS if any(f.resolution == FieldResolution.CONFLICT for _, f in fields)
+              else TechnicalResolutionStatus.PARTIAL if missing else TechnicalResolutionStatus.RESOLVED)
+    return missing, status
+
+
 class TechnicalExtractionService:
     def __init__(self, extractor: TechnicalExtractor, output_root: Path = Path("runtime/technical")) -> None:
         self.extractor = extractor
@@ -51,9 +60,7 @@ class TechnicalExtractionService:
             for _,field in fields:
                 if not set(field.evidence_candidate_ids) <= set(target.candidate_ids):
                     raise InvalidTechnicalProposalError("Structure evidence must belong to its own Identity")
-            missing = [path for path,field in fields if field.resolution == FieldResolution.UNKNOWN]
-            status = (TechnicalResolutionStatus.AMBIGUOUS if any(f.resolution == FieldResolution.CONFLICT for _,f in fields)
-                      else TechnicalResolutionStatus.PARTIAL if missing else TechnicalResolutionStatus.RESOLVED)
+            missing, status = technical_bookkeeping(structure)
             modules = []
             for module in structure.modules:
                 panes = []

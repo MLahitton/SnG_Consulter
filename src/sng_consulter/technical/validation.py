@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 
-from .models import FieldResolution, TechnicalExtractionInput, TechnicalExtractionResult, TechnicalResolutionStatus
-from .service import _resolved_fields
+from .models import TechnicalExtractionInput, TechnicalExtractionResult
+from .service import _resolved_fields, technical_bookkeeping
 
 if TYPE_CHECKING:
     from .audit.models import TechnicalAuditResult
@@ -48,9 +48,7 @@ def validate_technical_result(result: TechnicalExtractionResult, evidence: Techn
         fields = list(_resolved_fields(structure))
         if any(not set(f.evidence_candidate_ids) <= set(identity.candidate_ids) for _, f in fields):
             raise ValueError("Technical evidence must belong to its Identity")
-        missing = [p for p, f in fields if f.resolution == FieldResolution.UNKNOWN]
-        status = (TechnicalResolutionStatus.AMBIGUOUS if any(f.resolution == FieldResolution.CONFLICT for _, f in fields)
-                  else TechnicalResolutionStatus.PARTIAL if missing else TechnicalResolutionStatus.RESOLVED)
+        missing, status = technical_bookkeeping(structure)
         if structure.missing_fields != missing or structure.resolution_status != status:
             raise ValueError("Technical missing_fields or resolution_status is inconsistent")
         for module in structure.modules:

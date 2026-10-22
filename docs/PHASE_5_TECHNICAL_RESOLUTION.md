@@ -2,21 +2,17 @@
 
 ## Estado y límites
 
-Implementado **5B — Issue-targeted Resolver**, exclusivamente proposal-only, sobre
-5A cerrada: modelos, permisos por path y builder determinístico de solo lectura. Fases 1–4 cerradas. La validación
-operativa de 4C.2 reportada cubrió múltiples artefactos reales con estados READY y
-BLOCKED; no se incorporan sus nombres, referencias ni resultados como reglas.
-
-5B agrega adapter OpenAI y CLI resolve; no existen apply, Verification ni Final Gate.
-No se ejecutan fases anteriores. No se crean technical_resolution.json,
-runtime/resolution, crops, prompts ni respuestas completas del proveedor. Solo se
-publican propuestas contractuales; ninguna TechnicalStructure persistida se modifica.
+Implementado **5C — Deterministic Apply / Validation**, sobre 5A cerrada y 5B
+proposal-only. Fases 1–4 cerradas. No se cambia su semántica ni se reejecutan servicios
+anteriores. 5C no importa proveedores, no usa API ni interpreta evidencia nueva.
+Publica únicamente un snapshot aplicado, sin modificar los artefactos de origen.
+Verification y Final Gate todavía no existen.
 
 | Subfase | Estado |
 | --- | --- |
 | 5A Resolution Foundation | Implementada |
 | 5B Issue-targeted Resolver | Implementada, solo propuestas |
-| 5C Deterministic Apply/Validation | Futura; no implementada |
+| 5C Deterministic Apply/Validation | Implementada, validación sintética |
 | 5D Independent Verification | Futura; no implementada |
 | 5E Final Technical Gate | Futura; no implementada |
 
@@ -66,7 +62,7 @@ READY produce resolution_required=false y targets=[] con hashes, contador total
 de identities resueltas y unresolved_groups preservados. BLOCKED produce true y
 solo un target por estructura con issues, en orden de Extraction. Cada target
 conserva el orden de sus issues del Audit. Estructuras limpias quedan fuera del
-trabajo futuro; varios issues de una estructura no crean targets duplicados.
+trabajo de Resolution; varios issues de una estructura no crean targets duplicados.
 Unresolved Identity se conserva exactamente, sin convertirla en TechnicalStructure.
 
 ## Permisos de cambio
@@ -86,12 +82,12 @@ lanza ValueError. Índices con ceros iniciales se canonicalizan al entero equiva
 
 Un root escalar/ResolvedField solo permite su subtree: una cota de módulo no abre
 permisos sobre function, quantity, dimensiones generales o un módulo hermano. Esto
-solo delimita permisos para futuros consumidores; 5A no valida diffs ni aplica cambios.
+delimita permisos para 5B/5C; 5A no valida diffs ni aplica cambios.
 
-## Contratos de propuestas futuras
+## Contratos de propuestas
 
 TechnicalIssueResolutionOutcome contiene exactamente CORRECTED, DISPUTED, UNRESOLVED.
-Semántica futura: CORRECTED propone un cambio con evidencia; DISPUTED sostiene que
+CORRECTED propone un cambio con evidencia; DISPUTED sostiene que
 el issue no requiere cambio y debe justificarlo (Verification decidirá); UNRESOLVED
 indica evidencia insuficiente. Ninguno se aplica ni decide automáticamente en 5A.
 
@@ -107,14 +103,12 @@ Es solo formato de propuesta: no concede permiso para cambiar toda la estructura
 5A valida forma/modelos existentes, no semantic diff, correspondencia completa de
 outcomes ni aplicación. No genera IDs nuevos ni publica propuestas.
 
-## Decisiones reservadas para 5C
+## Límite entre propuesta y aplicación
 
-En la futura 5C se compararán current_structure y proposed_structure y se rechazarán
-cambios fuera de allowed_change_paths. Bookkeeping derivado —resolution_status y
-missing_fields— no será libremente editable por IA: se recalculará determinísticamente
-tras validar/aplicar cambios. No se implementa esa recalculación/apply en 5A.
-Los IDs no autorizan alterar entidades fuera de los roots. La estrategia exacta de
-IDs para composition changes deberá cerrarse en 5C antes de permitir su aplicación.
+5A reconstruye permisos y targets; 5B propone sin aplicar. El prompt no constituye
+una barrera de seguridad: 5C certifica el diff antes de copiar cambios al baseline.
+5C v1 conserva exactamente IDs, cantidad y orden de entidades. No existe allocator
+ni aplicación de cambios de composición; esos casos deben quedar UNRESOLVED.
 
 ## Garantías y validación
 
@@ -128,7 +122,10 @@ Los hashes identifican snapshots, no bloquean ediciones concurrentes de archivos
 La validación operativa de 5A reportada cubrió múltiples artefactos reales: READY
 sin targets, BLOCKED solo con estructuras afectadas, allowed_change_paths acordes
 a issues y unresolved_groups preservados. No se usan identidades de esos casos
-como reglas. La validación real del resolver 5B queda pendiente.
+como reglas. Según el reporte operativo recibido, 5B también fue validada sobre
+artefactos reales: BLOCKED con UNKNOWN → INFERRED y EXPLICIT → UNKNOWN, READY con cero
+targets y sin API key, y cambios observados dentro de allowed_change_paths. Esas
+observaciones no sustituyen la certificación determinística de 5C.
 
 ## 5B — Servicio de propuestas
 
@@ -222,19 +219,111 @@ procesados y archivo de propuestas, retorna 0. Fuentes/configuración/API/output
 inválidos o error de escritura retornan 1. No ejecuta Extraction/Audit/Gate ni fases
 anteriores. Sus comandos existentes permanecen disponibles.
 
-## Deuda explícita antes de 5C
+## 5C — Deterministic Apply / Validation
 
-5C no existe y ninguna propuesta ha sido aplicada por 5B. Falta el diff completo
-de current/proposed_structure, aplicación validada y reconstrucción determinística
-de bookkeeping. El prompt no reemplaza esa comprobación: propuestas fuera de roots
-todavía no se detectan mediante un diff general y no deben consumirse como resultado
-aplicado. Igual ocurre con la comprobación semántica de que DISPUTED/UNRESOLVED no
-alteren sus paths; se instruye al modelo, pero la validación completa es posterior.
+### Contratos
 
-La política de IDs para composición debe cerrarse antes de aplicar adiciones,
-eliminaciones o reordenamientos. El prompt 5B pide UNRESOLVED y baseline preservado
-si no puede representarse responsablemente una corrección dentro de permisos y
-contrato sin inventar IDs o ampliar roots de conteo. No hay ID allocator ni apply.
-Verification (5D) y Final Gate (5E) siguen futuros. La implementación se valida
-con tests sintéticos/SDK simulado, no con solicitudes reales ni benchmarks. Queda
-pendiente revisión manual real del resolver tras revisar el reporte.
+TechnicalAppliedIssueResolution conserva issue_id, outcome, evidence_candidate_ids
+y reason, y añade changed_paths: paths locales reales, únicos, en orden del diff.
+CORRECTED exige cambios; DISPUTED y UNRESOLVED llevan []. No introduce confidence.
+
+TechnicalResolutionResult extiende TechnicalExtractionResult y conserva batch_id,
+source_identity_sha256, source_identity_gate_sha256, structures, unresolved_groups,
+resolved_identity_count y unresolved_group_count. Añade:
+
+- source_technical_extraction_sha256;
+- source_technical_audit_sha256;
+- source_technical_gate_sha256;
+- source_technical_resolution_proposals_sha256 (null para READY);
+- resolution_required;
+- issue_resolutions, en el orden exacto del Audit;
+- corrected_issue_count, disputed_issue_count, unresolved_issue_count;
+- changes_applied_count.
+
+Los contadores de outcomes suman audit.issue_count. changes_applied_count cuenta
+paths semánticos únicos por estructura; un mismo path en dos estructuras cuenta dos
+cambios, mientras varios issues solapados sobre el mismo path lo cuentan una vez.
+No incluye bookkeeping recalculado. La aplicación certifica la unicidad con el
+ownership del Audit; el modelo por sí solo no dispone de ese mapa issue/estructura.
+
+### Snapshots y lineage
+
+Se reutiliza build_technical_resolution_input sin cambiar su contrato ni targeting.
+La segunda lectura de Extraction/Audit/Gate exige SHA-256 idéntico a los hashes de
+5A: un cambio entre lecturas falla. Se reconstruye evidencia canónica y se valida
+el baseline. BLOCKED lee proposals una sola vez y calcula su hash sobre esos bytes,
+sin reserializarlos. Valida batch, tres hashes fuente, targets_processed, cantidad
+y orden exactos de proposals/targets. Reejecuta validate_resolution_proposal para
+cada propuesta, incluidos IDs, outcomes, ownership, bookkeeping y defaults.
+
+READY no lee ni requiere proposals, aunque exista un archivo histórico inválido;
+no lo borra. Publica todas las estructuras del baseline, outcomes vacíos, contadores
+cero y source_technical_resolution_proposals_sha256=null. No necesita API key.
+
+### Diff y autorización
+
+El diff recorre BaseModel/dict en orden contractual, con paths como
+modules[0].dimensions.width_mm.value. Escalares distintos producen un path;
+listas primitivas distintas producen el path de la lista completa. Para modules,
+glass_panes y decorative_elements exige igual longitud, IDs y orden antes de
+recorrer campos internos. identity_id y technical_structure_id son inmutables.
+Ni siquiera un root padre autoriza agregar, eliminar, reordenar o reasignar IDs.
+
+Cada path debe caer dentro de target.allowed_change_paths y dentro de los
+field_paths de al menos un issue CORRECTED. Se reutiliza el parser estructural y
+path_is_within_allowed_root; los índices hermanos no se confunden. CORRECTED sin
+cambio real falla. DISPUTED/UNRESOLVED no conceden permisos. Un issue CORRECTED
+solapado sí puede autorizar un cambio compartido; se atribuye solo a CORRECTED y
+puede figurar en varios changed_paths de esos issues, sin duplicar el contador.
+
+### Apply y validación completa
+
+Se copia el baseline a una representación mutable independiente y se copian solo
+los paths certificados desde la propuesta, sin eval ni setattr arbitrario. Nunca
+se reemplaza ciegamente una estructura por la propuesta. Todos los targets deben
+pasar; un fallo rechaza el batch completo. Estructuras limpias y targets sin cambios
+conservan el baseline y su orden. Inputs y proposals no se mutan.
+
+Se reutiliza technical_bookkeeping, extraído sin cambio semántico de las reglas de
+Extraction y de su validador: missing_fields incluye únicamente UNKNOWN en orden
+canónico; cualquier CONFLICT produce AMBIGUOUS, en su ausencia UNKNOWN produce
+PARTIAL, y sin ambos resulta RESOLVED. CONFLICT no se agrega a missing_fields.
+El bookkeeping de la propuesta debe ser el baseline, pero no se usa como estado final.
+
+Después de construir el resultado completo se llama validate_technical_result con
+build_technical_extraction_input: lineage Identity, targets/order, IDs únicos,
+evidence ownership, unresolved groups, counters y bookkeeping. Pydantic valida
+además invariantes de cantidades y contratos de campos. No se introducen DEFAULTED.
+
+### Persistencia, errores y CLI
+
+Solo tras validar todo se publica
+runtime/technical/<batch_id>/technical_resolution.json mediante staging + replace
+atómico. Ante errores manejados se limpia staging y se preservan byte por byte
+el resultado anterior y todas las fuentes. Errores distinguen inputs/proposals
+inválidos o stale, cambios no autorizados, composición no soportada y fallos de
+persistencia/sistema. No se reparan propuestas ni se imprimen payloads completos.
+
+```powershell
+python -m sng_consulter.technical apply-resolution "BATCH_ID"
+```
+
+READY imprime 0 issues / 0 changes; BLOCKED imprime los tres contadores de outcomes
+y Changes. Ambos muestran Result y retornan 0. Fuentes inválidas, proposals ausentes
+en BLOCKED, diffs no autorizados y fallos de aplicación/persistencia retornan 1.
+El CLI no importa OpenAI ni ejecuta fases anteriores o 5B automáticamente.
+
+## Deuda explícita antes de 5D
+
+5C está probado con casos sintéticos, sin ejecutar batches reales ni API. Falta la
+validación operativa posterior sobre las propuestas reales existentes. 5D Independent
+Verification y 5E Final Technical Gate siguen pendientes. technical_resolution.json
+NO es un resultado final certificado ni el contrato final de Backend.
+
+La composición sigue conservadora: no se admiten adiciones, eliminaciones ni
+reordenamientos y no hay allocator de IDs. No se interpreta evidencia para juzgar
+si una disputa es documentalmente correcta: eso corresponde a 5D.
+
+Los hashes identifican los snapshots consumidos; no hay locks ni coordinación de
+escritores concurrentes. Replace es atómico, pero no se garantiza durabilidad con
+fsync ni limpieza de staging tras cierre abrupto del proceso.

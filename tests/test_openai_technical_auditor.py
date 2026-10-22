@@ -243,7 +243,8 @@ def test_cli_audit_only_and_client_closed(audit_case,sdk,monkeypatch,capsys,fail
     from sng_consulter.technical.service import TechnicalExtractionService
     service,_,_,_,evidence,root=audit_case
     def forbidden(*a,**kw): pytest.fail('Audit must not execute extraction or earlier phases')
-    monkeypatch.setattr(command,'OpenAITechnicalExtractor',forbidden)
+    from sng_consulter.technical import openai_extractor
+    monkeypatch.setattr(openai_extractor,'OpenAITechnicalExtractor',forbidden)
     for cls,name in [(DiscoveryService,'discover'),(IdentityResolutionService,'resolve'),
         (IdentityAuditService,'audit'),(IdentityGateService,'gate'),(TechnicalExtractionService,'extract')]:
         monkeypatch.setattr(cls,name,forbidden)

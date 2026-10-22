@@ -1,7 +1,7 @@
 ﻿# SnG Consulter
 
 Servicio de preparación documental para Steel & Glass. Fase 1 cerrada;
-estado actual: **5B — Issue-targeted Resolver (proposal-only)**.
+estado actual: **5C — Deterministic Apply / Validation**.
 
 ## Discovery 2A.1 y 2A.2
 
@@ -366,8 +366,8 @@ impide publicar todo el batch y conserva el resultado previo. El adapter no escr
 artefactos: el servicio existente sigue publicando tras validar todas las propuestas.
 El CLI cierra el cliente ante éxito/error y nunca ejecuta fases anteriores.
 
-No existen apply de Technical Resolution, Verification ni Final Resolution. El empaquetado es
-determinístico; la calidad y variabilidad del proveedor requieren prueba manual real.
+Extraction no aplica Technical Resolution ni ejecuta Verification o Final Resolution.
+El empaquetado es determinístico; la calidad del proveedor requiere prueba manual real.
 
 ## Preparación disponible
 
@@ -617,7 +617,7 @@ missing/invalid/stale/inconsistentes fallan con exit code 1.
 Publica atómicamente `runtime/technical/<batch_id>/technical_gate.json`, con hashes
 SHA-256 exactos de ambos inputs y todos los blocking_issue_ids en orden. Ante fallo
 conserva el Gate previo y los inputs. No requiere API key. Se conservan los comandos
-de extracción y audit; no existe Technical Resolution ni reconciliación automática.
+de extracción y audit; Gate no ejecuta Technical Resolution ni reconciliación automática.
 
 Según la validación operativa reportada, 4C.2 fue probado sobre múltiples artefactos
 reales, tanto READY_FOR_VERIFICATION como BLOCKED_BY_TECHNICAL_ISSUES.
@@ -634,16 +634,16 @@ Unresolved Identity permanece intacto y nunca se convierte en estructura.
 
 Los permisos derivan solo de los paths del audit: deduplicados, sin descendientes
 redundantes y en orden de primera aparición de los roots conservados. La pertenencia
-se compara por componentes, sin confundir índices. Las propuestas futuras usarán
+se compara por componentes, sin confundir índices. Las propuestas de 5B usan
 TechnicalStructure completa, no JSON patch genérico; esto no autoriza cambios fuera
 de los roots. No se comparan ni aplican propuestas en 5A.
 
 5A fue validada operativamente según el reporte recibido: READY produjo cero targets,
 BLOCKED solo estructuras afectadas, paths acordes a issues y unresolved preservados.
 
-Actual: 5B Issue-targeted Resolver, sobre la foundation 5A. Futuro, todavía no
-implementado: 5C Deterministic Apply/Validation, 5D Independent Verification y 5E Final
-Technical Gate. Ver [decisiones y contratos de Fase 5](docs/PHASE_5_TECHNICAL_RESOLUTION.md).
+Actual: 5C Deterministic Apply/Validation, sobre 5A y las propuestas de 5B.
+5D Independent Verification y 5E Final Technical Gate siguen futuros.
+Ver [decisiones y contratos de Fase 5](docs/PHASE_5_TECHNICAL_RESOLUTION.md).
 
 ### Issue-targeted Resolver — 5B (solo propuestas)
 
@@ -664,7 +664,36 @@ de issues, evidencia, contrato, bookkeeping preservado y ausencia de nuevos DEFA
 Límites: 24 candidatos, 8 páginas, 240.000 bytes de metadata por target, sin truncar.
 
 **Las propuestas NO están aplicadas.** Technical Extraction, Audit y Gate no cambian.
-5C todavía no existe: falta diff general por permisos, apply, política de IDs para
-composición y bookkeeping derivado. Las restricciones de paths se instruyen al modelo,
-pero no se certifican mediante diff en 5B. Falta validación real; esta implementación
-solo usa tests sintéticos/SDK simulado, sin ejecutar batches reales ni benchmark.
+5B fue validada operativamente según el reporte recibido: BLOCKED con correcciones
+UNKNOWN → INFERRED y retiro EXPLICIT → UNKNOWN, READY sin targets ni API key, y cambios
+observados limitados a allowed_change_paths. El prompt no certifica permisos; 5C lo hace.
+
+### Deterministic Apply / Validation — 5C
+
+```powershell
+python -m sng_consulter.technical apply-resolution "BATCH_ID"
+```
+
+Comando offline, sin API key ni imports del proveedor. Consume snapshots persistidos
+validados por 5A; no ejecuta Extraction, Audit, Gate ni 5B. READY ignora propuestas
+históricas y publica el baseline completo con cero issues/cambios. BLOCKED exige
+propuestas con hashes y targets exactos y revalida las garantías de 5B.
+
+El diff recorre el contrato en orden; listas primitivas cuentan como un path. Cada
+cambio debe pertenecer a un root autorizado y a un issue CORRECTED con cambio real.
+DISPUTED/UNRESOLVED no autorizan cambios, salvo solapamiento con CORRECTED. Todos los
+IDs y el tamaño/orden de modules, glass_panes y decorative_elements permanecen exactos;
+no se aplican cambios de composición. El resultado se construye desde baseline + paths
+validados, recalcula missing_fields/resolution_status con las reglas canónicas y pasa
+validación técnica completa. No introduce DEFAULTED ni interpreta evidencia nueva.
+
+Publica `runtime/technical/<batch_id>/technical_resolution.json` por staging + replace
+atómico. Incluye todas las estructuras en orden, lineage Identity y cuatro hashes
+fuente, outcomes con changed_paths y contadores. Los paths se cuentan una vez por
+estructura aunque varios issues CORRECTED los compartan. Cualquier fallo conserva
+el resultado previo y todos los inputs. No hay locks ni garantías frente a cierre
+abrupto; los hashes identifican los snapshots consumidos.
+
+**technical_resolution.json todavía NO es el contrato final de Backend**: faltan 5D y
+5E. 5C tiene validación sintética; la prueba operativa sobre propuestas reales queda
+pendiente y no se ejecuta automáticamente.

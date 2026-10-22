@@ -1,4 +1,4 @@
-"""Resolution foundation and proposal service; provider adapter is loaded lazily."""
+"""Resolution foundation, proposals and deterministic apply; providers stay lazy."""
 
 from .inputs import build_technical_resolution_input, InvalidTechnicalResolutionInputError
 from .models import (
@@ -11,6 +11,12 @@ from .service import (
     TechnicalResolutionConfigurationError, TechnicalResolutionAPIError,
     InvalidTechnicalResolutionResponseError, TechnicalResolutionContextBudgetExceeded,
 )
+from .application import (
+    TechnicalResolutionApplicationService, InvalidTechnicalResolutionApplicationInputError,
+    UnauthorizedTechnicalResolutionChangeError,
+)
+from .diff import UnsupportedTechnicalResolutionCompositionChangeError
+from .result_models import TechnicalAppliedIssueResolution, TechnicalResolutionResult
 
 __all__ = [
     "build_technical_resolution_input", "InvalidTechnicalResolutionInputError",
@@ -20,4 +26,7 @@ __all__ = [
     "TechnicalResolutionProposalService", "TechnicalResolutionProposalResult",
     "TechnicalResolutionConfigurationError", "TechnicalResolutionAPIError",
     "InvalidTechnicalResolutionResponseError", "TechnicalResolutionContextBudgetExceeded",
+    "TechnicalResolutionApplicationService", "InvalidTechnicalResolutionApplicationInputError",
+    "UnauthorizedTechnicalResolutionChangeError", "UnsupportedTechnicalResolutionCompositionChangeError",
+    "TechnicalAppliedIssueResolution", "TechnicalResolutionResult",
 ]
